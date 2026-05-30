@@ -234,22 +234,16 @@ export default function Dashboard() {
 
           {/* Stats cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {loading ? (
-              <div className="col-span-full text-center py-4">Loading stats...</div>
-            ) : stats.length > 0 ? (
-              stats.map(stat => (
-                <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-4">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg mb-3 ${stat.color}`}>
-                    {stat.icon}
-                  </div>
-                  <p className="text-2xl font-medium !text-gray-900">{stat.value}</p>
-                  <p className="text-xs !text-gray-500 mt-0.5">{stat.label}</p>
-                  <p className="text-xs !text-green-600 mt-1">{stat.change}</p>
+            {stats.map(stat => (
+              <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-4">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg mb-3 ${stat.color}`}>
+                  {stat.icon}
                 </div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-4 !text-gray-500">No stats available</div>
-            )}
+                <p className="text-2xl font-medium !text-gray-900">{stat.value}</p>
+                <p className="text-xs !text-gray-500 mt-0.5">{stat.label}</p>
+                <p className="text-xs !text-green-600 mt-1">{stat.change}</p>
+              </div>
+            ))}
           </div>
 
           {/* Status bar chart */}

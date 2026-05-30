@@ -59,18 +59,18 @@ router.post('/newTicket', async (req, res) => {
       return res.status(400).json({ error: 'User not found' })
     }
 
-    // Validate employee exists 
-    // if (employee_id) {
-    //   const { data: empExists, error: empError } = await supabase
-    //     .from('employee')
-    //     .select('id')
-    //     .eq('id', employee_id)
-    //     .single()
+    //Validate employee exists 
+    if (employee_id) {
+      const { data: empExists, error: empError } = await supabase
+        .from('employee')
+        .select('id')
+        .eq('id', employee_id)
+        .single()
 
-    //   if (empError || !empExists) {
-    //     return res.status(400).json({ error: 'Employee not found' })
-    //   }
-    // }
+      if (empError || !empExists) {
+        return res.status(400).json({ error: 'Employee not found' })
+      }
+    }
 
     const insertObj = {
       title,
@@ -91,7 +91,7 @@ router.post('/newTicket', async (req, res) => {
     if (error) throw error
 
     res.status(201).json(data);
-    
+
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
