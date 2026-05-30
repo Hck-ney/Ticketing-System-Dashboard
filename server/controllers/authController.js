@@ -3,9 +3,9 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 const register = async (req, res) => {
-  const { name, email, password, role } = req.body
+  const { name, email, password, age, gender } = req.body
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !age || !gender) {
     return res.status(400).json({ error: 'All fields are required' })
   }
 
@@ -25,9 +25,9 @@ const register = async (req, res) => {
 
   // Insert user
   const { data, error } = await supabase
-    .from('users')
-    .insert([{ name, email, password: hashedPassword, role: role || 'employee' }])
-    .select('id, name, email, role')
+    .from('employee')
+    .insert([{ name, email, password: hashedPassword, age, gender }])
+    .select('id, name, email, age, gender')
     .single()
 
   if (error) return res.status(500).json({ error: error.message })
@@ -44,7 +44,7 @@ const login = async (req, res) => {
 
   // Find user
   const { data: user, error } = await supabase
-    .from('users')
+    .from('employee')
     .select('*')
     .eq('email', email)
     .single()
@@ -61,7 +61,7 @@ const login = async (req, res) => {
 
   // Generate JWT
   const token = jwt.sign(
-    { id: user.id, role: user.role },
+    { id: user.id },
     process.env.JWT_SECRET,
     { expiresIn: '1d' }
   )
@@ -72,7 +72,6 @@ const login = async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
     },
   })
 }
