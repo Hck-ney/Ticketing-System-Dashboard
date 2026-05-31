@@ -1,334 +1,279 @@
-import { getTickets, getStats } from '../api/tickets'
-
-// export default function Dashboard() {
-//   const [tickets, setTickets] = useState([])
-//   const [stats, setStats] = useState([])
-//   const [loading, setLoading] = useState(true)
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         const ticketsData = await getTickets()
-//         const statsData = await getStats()
-//         setTickets(ticketsData)
-//         setStats(statsData)
-//       } catch (error) {
-//         console.error('Error fetching data:', error)
-//       } finally {
-//         setLoading(false)
-//       }
-//     }
-//     fetchData()
-//   }, [])
-
-//   if (loading) return <div>Loading...</div>
-  
-//   // Now use tickets and stats in your JSX
-// }
-
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const navItems = [
-  { icon: '📊', label: 'Dashboard', id: 'dashboard' },
-  { icon: '🎫', label: 'Tickets', id: 'tickets' },
-  { icon: '👥', label: 'Users', id: 'users' },
-  { icon: '📈', label: 'Analytics', id: 'analytics' },
-  { icon: '⚙️', label: 'Settings', id: 'settings' },
+const myTickets = [
+  { id: '#1042', title: 'Cannot connect to Wi-Fi', status: 'pending', priority: 'high', created: 'May 28, 2026', updated: '10 mins ago', description: 'Wi-Fi adapter is not detecting any networks since this morning.' },
+  { id: '#1039', title: 'Printer offline', status: 'pending', priority: 'high', created: 'May 27, 2026', updated: '3 hrs ago', description: 'Office printer on 3rd floor shows offline in Windows settings.' },
+  { id: '#1035', title: 'Outlook not syncing', status: 'resolved', priority: 'medium', created: 'May 25, 2026', updated: 'May 26, 2026', description: 'Emails not syncing automatically, had to manually refresh.' },
+  { id: '#1031', title: 'VPN connection drops', status: 'in_progress', priority: 'medium', created: 'May 24, 2026', updated: 'May 25, 2026', description: 'VPN disconnects every 10–15 minutes when working remotely.' },
+  { id: '#1028', title: 'Monitor flickering', status: 'closed', priority: 'low', created: 'May 20, 2026', updated: 'May 22, 2026', description: 'Secondary monitor flickers intermittently during use.' },
 ]
 
-// Stats are now fetched from the backend; initial placeholder removed
-
-const recentTickets = [
-  { id: '#1042', title: 'Cannot connect to Wi-Fi', status: 'pending', priority: 'high', user: 'Maria Santos', time: '10 mins ago' },
-  { id: '#1041', title: 'Monitor not detected', status: 'in_progress', priority: 'medium', user: 'John Reyes', time: '1 hr ago' },
-  { id: '#1040', title: 'Outlook not opening', status: 'resolved', priority: 'low', user: 'Ana Cruz', time: '2 hrs ago' },
-  { id: '#1039', title: 'Printer offline', status: 'pending', priority: 'high', user: 'Carlo Lim', time: '3 hrs ago' },
-  { id: '#1038', title: 'Account locked', status: 'in_progress', priority: 'medium', user: 'Rica Dela Cruz', time: '5 hrs ago' },
-]
-
-const statusStyles: Record<string, string> = {
-  pending: 'bg-yellow-100 !text-yellow-700',
-  in_progress: 'bg-blue-100 !text-blue-700',
-  resolved: 'bg-green-100 !text-green-700',
-  closed: 'bg-gray-100 !text-gray-600',
+const statusStyle: Record<string, { bg: string; color: string; dot: string }> = {
+  pending:     { bg: '#FEF9C3', color: '#A16207', dot: '#FACC15' },
+  in_progress: { bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6' },
+  resolved:    { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
+  closed:      { bg: '#F3F4F6', color: '#4B5563', dot: '#9CA3AF' },
 }
 
-const priorityStyles: Record<string, string> = {
-  high: 'bg-red-100 !text-red-600',
-  medium: 'bg-orange-100 !text-orange-600',
-  low: 'bg-gray-100 !text-gray-500',
+const priorityStyle: Record<string, { bg: string; color: string }> = {
+  high:   { bg: '#FEE2E2', color: '#DC2626' },
+  medium: { bg: '#FFEDD5', color: '#EA580C' },
+  low:    { bg: '#F3F4F6', color: '#6B7280' },
 }
 
 const statusLabel: Record<string, string> = {
-  pending: 'Pending',
-  in_progress: 'In Progress',
-  resolved: 'Resolved',
-  closed: 'Closed',
+  pending: 'Pending', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed',
 }
+
+const navItems = [
+  { icon: '📊', label: 'Overview', id: 'overview' },
+  { icon: '🎫', label: 'My Tickets', id: 'tickets' },
+  { icon: '➕', label: 'New Ticket', id: 'new' },
+  { icon: '⚙️', label: 'Settings', id: 'settings' },
+]
 
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [active, setActive] = useState('dashboard')
+  const [active, setActive] = useState('overview')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [stats, setStats] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [selectedTicket, setSelectedTicket] = useState<typeof myTickets[0] | null>(null)
+  const [showNewModal, setShowNewModal] = useState(false)
+  const [newTicket, setNewTicket] = useState({ title: '', description: '', priority: 'medium' })
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+  const handleLogout = () => { logout(); navigate('/login') }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const statsData = await getStats()
-        const formattedStats = [
-          {
-            label: 'Total Tickets',
-            value: (statsData.total ?? 0).toString(),
-            change: '+12 this week',
-            color: 'bg-blue-50 !text-blue-700',
-            icon: '🎫',
-          },
-          {
-            label: 'Pending',
-            value: (statsData.pending ?? 0).toString(),
-            change: '5 high priority',
-            color: 'bg-yellow-50 !text-yellow-700',
-            icon: '⏳',
-          },
-          {
-            label: 'In Progress',
-            value: (statsData.in_progress ?? 0).toString(),
-            change: '8 assigned today',
-            color: 'bg-purple-50 !text-purple-700',
-            icon: '🔧',
-          },
-          {
-            label: 'Resolved',
-            value: (statsData.resolved ?? 0).toString(),
-            change: '+8 since yesterday',
-            color: 'bg-green-50 !text-green-700',
-            icon: '✅',
-          },
-        ]
-        setStats(formattedStats)
-      } catch (error) {
-        console.error('Error fetching stats:', error)
-        setStats([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
+  const stats = [
+    { label: 'Total Submitted', value: myTickets.length.toString(), bg: '#EFF6FF', iconBg: '#DBEAFE', color: '#1D4ED8', icon: '🎫' },
+    { label: 'Pending', value: myTickets.filter(t => t.status === 'pending').length.toString(), bg: '#FEFCE8', iconBg: '#FEF9C3', color: '#A16207', icon: '⏳' },
+    { label: 'In Progress', value: myTickets.filter(t => t.status === 'in_progress').length.toString(), bg: '#FAF5FF', iconBg: '#F3E8FF', color: '#7E22CE', icon: '🔧' },
+    { label: 'Resolved', value: myTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length.toString(), bg: '#F0FDF4', iconBg: '#DCFCE7', color: '#15803D', icon: '✅' },
+  ]
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div style={{ height: '100vh', display: 'flex', fontFamily: 'system-ui, sans-serif', background: '#F8FAFC', overflow: 'hidden' }}>
 
-      {/* Sidebar overlay on mobile */}
+      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-20 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 z-20 lg:hidden"
+          style={{ background: 'rgba(0,0,0,0.3)' }}
+          onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-100 z-30 flex flex-col
-        transition-transform duration-200
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:z-auto
-      `}>
+      {/* ── Sidebar ── */}
+      <aside
+        className={`fixed top-0 left-0 h-full z-30 flex flex-col lg:relative lg:translate-x-0 lg:z-auto transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', flexShrink: 0 }}
+      >
         {/* Brand */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
-          <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center">
-            <span className="text-white text-sm">🖥</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '18px 20px', borderBottom: '1px solid #F1F5F9' }}>
+          <div style={{ width: 38, height: 38, background: '#185FA5', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 20 }}>🖥</span>
           </div>
           <div>
-            <p className="text-sm font-medium !text-gray-900">IT Support</p>
-            <p className="text-xs !text-gray-400">Dashboard</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>IT Support</p>
+            <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Employee Portal</p>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => { setActive(item.id); setSidebarOpen(false) }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer ${
-                active === item.id
-                  ? 'bg-blue-50 !text-blue-700 font-medium'
-                  : '!text-gray-500 hover:bg-gray-50 hover:!text-gray-700'
-              }`}
+            <button key={item.id}
+              onClick={() => {
+                if (item.id === 'new') { setShowNewModal(true); setSidebarOpen(false) }
+                else { setActive(item.id); setSidebarOpen(false) }
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+                borderRadius: 8, border: 'none', cursor: 'pointer', width: '100%',
+                textAlign: 'left', fontSize: 14, fontWeight: active === item.id ? 600 : 400,
+                background: item.id === 'new' ? '#EFF6FF' : active === item.id ? '#EFF6FF' : 'transparent',
+                color: item.id === 'new' ? '#185FA5' : active === item.id ? '#185FA5' : '#64748B',
+                transition: 'all 0.15s', fontFamily: 'inherit',
+              }}
             >
-              <span>{item.icon}</span>
+              <span style={{ fontSize: 17 }}>{item.icon}</span>
               {item.label}
             </button>
           ))}
         </nav>
 
-        {/* User info */}
-        <div className="px-4 py-4 border-t border-gray-100">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center">
-              <span className="text-white text-xs font-medium">
+        {/* User */}
+        <div style={{ padding: '14px 12px', borderTop: '1px solid #F1F5F9' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#185FA5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>
                 {user?.name?.charAt(0).toUpperCase()}
               </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium !text-gray-900 truncate">{user?.name}</p>
-              <p className="text-xs !text-gray-400 capitalize">{user?.role}</p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</p>
+              <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Employee</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full text-sm !text-red-500 hover:bg-red-50 py-2 rounded-lg transition-colors cursor-pointer"
-          >
-            Sign out
+          <button onClick={handleLogout}
+            style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: 'transparent', color: '#EF4444', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            🚪 Sign out
           </button>
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* ── Main ── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
 
-        {/* Top bar */}
-        <header className="bg-white border-b border-gray-100 px-4 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* Mobile menu button */}
-            <button
-              className="lg:hidden !text-gray-500 cursor-pointer"
-              onClick={() => setSidebarOpen(true)}
-            >
-              ☰
-            </button>
+        {/* Header */}
+        <header style={{ background: '#fff', borderBottom: '1px solid #F1F5F9', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button className="lg:hidden" onClick={() => setSidebarOpen(true)}
+              style={{ fontSize: 22, background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>☰</button>
             <div>
-              <h1 className="text-lg font-medium !text-gray-900">Dashboard</h1>
-              <p className="text-xs !text-gray-400 hidden sm:block">
-                Welcome back, {user?.name} 👋
+              <p style={{ fontSize: 17, fontWeight: 700, color: '#0F172A', margin: 0, textTransform: 'capitalize' }}>
+                {active === 'overview' ? 'My Dashboard' : active === 'tickets' ? 'My Tickets' : 'Settings'}
+              </p>
+              <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="relative p-2 !text-gray-400 hover:!text-gray-600 cursor-pointer">
-              🔔
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* New ticket button in header */}
+            <button
+              onClick={() => setShowNewModal(true)}
+              style={{ background: '#185FA5', color: '#fff', border: 'none', borderRadius: 10, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
+              className="hidden sm:block"
+            >
+              + New Ticket
             </button>
-            <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center">
-              <span className="text-white text-xs font-medium">
-                {user?.name?.charAt(0).toUpperCase()}
-              </span>
+            <button style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, padding: 6 }}>
+              🔔
+              <span style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, background: '#EF4444', borderRadius: '50%' }} />
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 12, borderLeft: '1px solid #F1F5F9' }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#185FA5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>{user?.name?.charAt(0).toUpperCase()}</span>
+              </div>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#0F172A' }} className="hidden sm:block">{user?.name}</span>
             </div>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 px-4 lg:px-8 py-6 overflow-y-auto">
+        {/* Content */}
+        <main style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
 
-          {/* Stats cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Welcome banner */}
+          <div style={{ background: '#185FA5', borderRadius: 16, padding: '22px 28px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <p style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 5px' }}>
+                Hi, {user?.name?.split(' ')[0]} 👋
+              </p>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+                Track your IT support requests and stay updated on their status.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowNewModal(true)}
+              style={{ background: '#fff', color: '#185FA5', border: 'none', borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer', flexShrink: 0, fontFamily: 'inherit' }}
+              className="hidden sm:block"
+            >
+              + New Ticket
+            </button>
+          </div>
+
+          {/* Stat cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 24 }}>
             {stats.map(stat => (
-              <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-4">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg mb-3 ${stat.color}`}>
+              <div key={stat.label} style={{ background: stat.bg, borderRadius: 14, padding: '18px 20px' }}>
+                <div style={{ width: 38, height: 38, background: stat.iconBg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 14 }}>
                   {stat.icon}
                 </div>
-                <p className="text-2xl font-medium !text-gray-900">{stat.value}</p>
-                <p className="text-xs !text-gray-500 mt-0.5">{stat.label}</p>
-                <p className="text-xs !text-green-600 mt-1">{stat.change}</p>
+                <p style={{ fontSize: 28, fontWeight: 800, color: '#0F172A', margin: '0 0 3px' }}>{stat.value}</p>
+                <p style={{ fontSize: 13, color: '#64748B', margin: 0, fontWeight: 500 }}>{stat.label}</p>
               </div>
             ))}
           </div>
 
-          {/* Status bar chart */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-medium !text-gray-900">Ticket Status Overview</h2>
-              <span className="text-xs !text-gray-400">Last 7 days</span>
-            </div>
-            <div className="space-y-3">
-              {[
-                { label: 'Resolved', value: 66, total: 128, color: 'bg-green-500' },
-                { label: 'Pending', value: 34, total: 128, color: 'bg-yellow-400' },
-                { label: 'In Progress', value: 28, total: 128, color: 'bg-blue-500' },
-              ].map(bar => (
-                <div key={bar.label} className="flex items-center gap-3">
-                  <span className="text-xs !text-gray-500 w-20 shrink-0">{bar.label}</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${bar.color}`}
-                      style={{ width: `${(bar.value / bar.total) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs !text-gray-500 w-6 text-right">{bar.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent tickets table */}
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-medium !text-gray-900">Recent Tickets</h2>
-              <button className="text-xs !text-blue-700 hover:underline cursor-pointer">View all</button>
+          {/* My Tickets */}
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #F1F5F9', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>My Recent Tickets</p>
+              <button
+                onClick={() => setShowNewModal(true)}
+                style={{ fontSize: 13, fontWeight: 700, color: '#185FA5', background: '#EFF6FF', border: 'none', borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                + New Ticket
+              </button>
             </div>
 
             {/* Desktop table */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="hidden sm:block" style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr className="border-b border-gray-50">
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">ID</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Title</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Submitted by</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Priority</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Status</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Time</th>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #F1F5F9' }}>
+                    {['ID', 'Issue', 'Priority', 'Status', 'Last Updated', ''].map(h => (
+                      <th key={h} style={{ textAlign: 'left', padding: '13px 22px', fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {recentTickets.map((ticket, i) => (
-                    <tr key={ticket.id} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === recentTickets.length - 1 ? 'border-0' : ''}`}>
-                      <td className="px-5 py-3 text-xs font-medium !text-blue-700">{ticket.id}</td>
-                      <td className="px-5 py-3 !text-gray-700 font-medium">{ticket.title}</td>
-                      <td className="px-5 py-3 !text-gray-500 text-xs">{ticket.user}</td>
-                      <td className="px-5 py-3">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${priorityStyles[ticket.priority]}`}>
+                  {myTickets.map(ticket => (
+                    <tr key={ticket.id} style={{ borderBottom: '1px solid #F8FAFC', cursor: 'pointer' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      onClick={() => setSelectedTicket(ticket)}>
+                      <td style={{ padding: '15px 22px', fontSize: 13, fontWeight: 700, color: '#185FA5' }}>{ticket.id}</td>
+                      <td style={{ padding: '15px 22px', fontSize: 14, fontWeight: 600, color: '#0F172A', maxWidth: 280 }}>
+                        <p style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ticket.title}</p>
+                        <p style={{ margin: '2px 0 0', fontSize: 12, color: '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ticket.description}</p>
+                      </td>
+                      <td style={{ padding: '15px 22px' }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: priorityStyle[ticket.priority].bg, color: priorityStyle[ticket.priority].color }}>
                           {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
                         </span>
                       </td>
-                      <td className="px-5 py-3">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusStyles[ticket.status]}`}>
-                          {statusLabel[ticket.status]}
-                        </span>
+                      <td style={{ padding: '15px 22px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: statusStyle[ticket.status].dot, flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, fontWeight: 600, color: statusStyle[ticket.status].color }}>
+                            {statusLabel[ticket.status]}
+                          </span>
+                        </div>
                       </td>
-                      <td className="px-5 py-3 text-xs !text-gray-400">{ticket.time}</td>
+                      <td style={{ padding: '15px 22px', fontSize: 12, color: '#94A3B8' }}>{ticket.updated}</td>
+                      <td style={{ padding: '15px 22px' }}>
+                        <button
+                          onClick={e => { e.stopPropagation(); setSelectedTicket(ticket) }}
+                          style={{ fontSize: 12, fontWeight: 600, color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                          View →
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Mobile ticket cards */}
-            <div className="sm:hidden divide-y divide-gray-50">
-              {recentTickets.map(ticket => (
-                <div key={ticket.id} className="px-4 py-3">
-                  <div className="flex items-start justify-between mb-1">
-                    <span className="text-xs font-medium !text-blue-700">{ticket.id}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusStyles[ticket.status]}`}>
-                      {statusLabel[ticket.status]}
-                    </span>
+            {/* Mobile cards */}
+            <div className="sm:hidden">
+              {myTickets.map(ticket => (
+                <div key={ticket.id}
+                  style={{ padding: '16px 20px', borderBottom: '1px solid #F8FAFC', cursor: 'pointer' }}
+                  onClick={() => setSelectedTicket(ticket)}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#185FA5' }}>{ticket.id}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: statusStyle[ticket.status].dot }} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: statusStyle[ticket.status].color }}>
+                        {statusLabel[ticket.status]}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-sm font-medium !text-gray-800 mb-1">{ticket.title}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs !text-gray-400">{ticket.user}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${priorityStyles[ticket.priority]}`}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: '0 0 4px' }}>{ticket.title}</p>
+                  <p style={{ fontSize: 12, color: '#94A3B8', margin: '0 0 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ticket.description}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, color: '#94A3B8' }}>Updated {ticket.updated}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: priorityStyle[ticket.priority].bg, color: priorityStyle[ticket.priority].color }}>
                       {ticket.priority}
                     </span>
                   </div>
@@ -338,6 +283,141 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+
+      {/* ── Ticket Detail Modal ── */}
+      {selectedTicket && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          onClick={() => setSelectedTicket(null)}>
+          <div style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 520, padding: '28px 32px', boxSizing: 'border-box' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#185FA5', margin: '0 0 4px' }}>{selectedTicket.id}</p>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: 0 }}>{selectedTicket.title}</h2>
+              </div>
+              <button onClick={() => setSelectedTicket(null)}
+                style={{ background: '#F1F5F9', border: 'none', borderRadius: 8, width: 32, height: 32, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                ✕
+              </button>
+            </div>
+
+            {/* Status banner */}
+            <div style={{ background: statusStyle[selectedTicket.status].bg, borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: statusStyle[selectedTicket.status].dot }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: statusStyle[selectedTicket.status].color }}>
+                {statusLabel[selectedTicket.status]}
+              </span>
+            </div>
+
+            {/* Details */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 22 }}>
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 5px' }}>Description</p>
+                <p style={{ fontSize: 14, color: '#374151', margin: 0, lineHeight: 1.6 }}>{selectedTicket.description}</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 5px' }}>Priority</p>
+                  <span style={{ fontSize: 13, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: priorityStyle[selectedTicket.priority].bg, color: priorityStyle[selectedTicket.priority].color }}>
+                    {selectedTicket.priority.charAt(0).toUpperCase() + selectedTicket.priority.slice(1)}
+                  </span>
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 5px' }}>Date Created</p>
+                  <p style={{ fontSize: 13, color: '#374151', margin: 0, fontWeight: 500 }}>{selectedTicket.created}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 5px' }}>Last Updated</p>
+                  <p style={{ fontSize: 13, color: '#374151', margin: 0, fontWeight: 500 }}>{selectedTicket.updated}</p>
+                </div>
+              </div>
+            </div>
+
+            <button onClick={() => setSelectedTicket(null)}
+              style={{ width: '100%', height: 44, background: '#F1F5F9', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#64748B', cursor: 'pointer', fontFamily: 'inherit' }}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── New Ticket Modal ── */}
+      {showNewModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          onClick={() => setShowNewModal(false)}>
+          <div style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 480, padding: '28px 32px', boxSizing: 'border-box' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: 0 }}>Submit New Ticket</h2>
+              <button onClick={() => setShowNewModal(false)}
+                style={{ background: '#F1F5F9', border: 'none', borderRadius: 8, width: 32, height: 32, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 7 }}>Issue Title</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Cannot connect to Wi-Fi"
+                  value={newTicket.title}
+                  onChange={e => setNewTicket({ ...newTicket, title: e.target.value })}
+                  style={{ width: '100%', height: 44, padding: '0 14px', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 14, color: '#0F172A', background: '#F8FAFC', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                  onFocus={e => e.target.style.borderColor = '#185FA5'}
+                  onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 7 }}>Description</label>
+                <textarea
+                  placeholder="Describe the issue in detail..."
+                  value={newTicket.description}
+                  onChange={e => setNewTicket({ ...newTicket, description: e.target.value })}
+                  rows={4}
+                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 14, color: '#0F172A', background: '#F8FAFC', outline: 'none', fontFamily: 'inherit', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }}
+                  onFocus={e => e.target.style.borderColor = '#185FA5'}
+                  onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 7 }}>Priority</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  {[
+                    { value: 'low', label: 'Low', bg: '#F3F4F6', color: '#6B7280', activeBg: '#F3F4F6', activeColor: '#374151' },
+                    { value: 'medium', label: 'Medium', bg: '#FFEDD5', color: '#EA580C', activeBg: '#FFEDD5', activeColor: '#EA580C' },
+                    { value: 'high', label: 'High', bg: '#FEE2E2', color: '#DC2626', activeBg: '#FEE2E2', activeColor: '#DC2626' },
+                  ].map(p => (
+                    <button key={p.value}
+                      onClick={() => setNewTicket({ ...newTicket, priority: p.value })}
+                      style={{
+                        padding: '10px', borderRadius: 10, border: newTicket.priority === p.value ? `2px solid ${p.color}` : '1.5px solid #E2E8F0',
+                        background: newTicket.priority === p.value ? p.bg : '#fff',
+                        color: newTicket.priority === p.value ? p.color : '#94A3B8',
+                        fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s'
+                      }}>
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+              <button onClick={() => setShowNewModal(false)}
+                style={{ flex: 1, height: 44, background: '#F1F5F9', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#64748B', cursor: 'pointer', fontFamily: 'inherit' }}>
+                Cancel
+              </button>
+              <button
+                onClick={() => { alert('Ticket submitted! (Connect to API next)'); setShowNewModal(false); setNewTicket({ title: '', description: '', priority: 'medium' }) }}
+                style={{ flex: 2, height: 44, background: '#185FA5', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
+                Submit Ticket →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

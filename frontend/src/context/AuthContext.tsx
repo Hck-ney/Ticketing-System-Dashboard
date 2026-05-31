@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('user', JSON.stringify(user))
     setToken(token)
     setUser(user)
+    console.log('Logged in user:', user.role) // Debugging log
   }
 
   const logout = () => {

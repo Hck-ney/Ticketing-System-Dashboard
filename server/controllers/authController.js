@@ -26,8 +26,8 @@ const register = async (req, res) => {
   // Insert user
   const { data, error } = await supabase
     .from('users')
-    .insert([{ name, email, password: hashedPassword, age, gender, role: 'user'}])
-    .select('id, name, email, age, gender')
+    .insert([{ name, email, password: hashedPassword, age, gender, role}])
+    .select('id, name, email, age, gender, role')
     .single()
 
   if (error) return res.status(500).json({ error: error.message })
@@ -36,7 +36,7 @@ const register = async (req, res) => {
 }
 
 const login = async (req, res) => {
-  const { email, password } = req.body
+  const { email, password, user_role } = req.body
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' })
@@ -72,6 +72,7 @@ const login = async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role
     },
   })
 }

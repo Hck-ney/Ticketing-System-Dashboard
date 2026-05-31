@@ -18,7 +18,11 @@ export default function Login() {
     setLoading(false)
     if (res.error) return setError(res.error)
     login(res.token, res.user)
-    navigate('/dashboard')
+    if (res.user.role === 'employee') {
+      navigate('/employee-dashboard')
+    } else {
+      navigate('/dashboard')
+    }
   }
 
   return (
