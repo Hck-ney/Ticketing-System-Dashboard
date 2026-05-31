@@ -82,6 +82,7 @@ export default function Employee_Dashboard() {
   }
 
   useEffect(() => {
+    loading 
     const fetchData = async () => {
       try {
         const statsData = await getStats()

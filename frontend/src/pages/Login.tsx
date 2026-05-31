@@ -70,15 +70,7 @@ export default function Login() {
           ))}
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 36, position: 'relative' }}>
-          {[['98%', 'Resolution rate'], ['2.4h', 'Avg. response time']].map(([num, label]) => (
-            <div key={label} style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>{num}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 3 }}>{label}</div>
-            </div>
-          ))}
-        </div>
+      
       </div>
 
       {/* ── Right panel ── */}

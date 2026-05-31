@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { createTicket } from '../api/tickets'
+import { toast } from 'sonner'
 
 const myTickets = [
   { id: '#1042', title: 'Cannot connect to Wi-Fi', status: 'pending', priority: 'high', created: 'May 28, 2026', updated: '10 mins ago', description: 'Wi-Fi adapter is not detecting any networks since this morning.' },
@@ -11,16 +13,16 @@ const myTickets = [
 ]
 
 const statusStyle: Record<string, { bg: string; color: string; dot: string }> = {
-  pending:     { bg: '#FEF9C3', color: '#A16207', dot: '#FACC15' },
+  pending: { bg: '#FEF9C3', color: '#A16207', dot: '#FACC15' },
   in_progress: { bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6' },
-  resolved:    { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
-  closed:      { bg: '#F3F4F6', color: '#4B5563', dot: '#9CA3AF' },
+  resolved: { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
+  closed: { bg: '#F3F4F6', color: '#4B5563', dot: '#9CA3AF' },
 }
 
 const priorityStyle: Record<string, { bg: string; color: string }> = {
-  high:   { bg: '#FEE2E2', color: '#DC2626' },
+  high: { bg: '#FEE2E2', color: '#DC2626' },
   medium: { bg: '#FFEDD5', color: '#EA580C' },
-  low:    { bg: '#F3F4F6', color: '#6B7280' },
+  low: { bg: '#F3F4F6', color: '#6B7280' },
 }
 
 const statusLabel: Record<string, string> = {
@@ -41,9 +43,32 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState<typeof myTickets[0] | null>(null)
   const [showNewModal, setShowNewModal] = useState(false)
-  const [newTicket, setNewTicket] = useState({ title: '', description: '', priority: 'medium' })
-
+  const Ticket = { title: '', description: '', priority: '', status: 'Open', user_id: user?.id }
+  const [newTicket, setNewTicket] = useState(Ticket)
+  const [isLoading, setIsLoading] = useState(false)
   const handleLogout = () => { logout(); navigate('/login') }
+
+
+  const CreateTicket = async () => {
+    if (!newTicket.title || !newTicket.description || !newTicket.priority) {
+      alert('Please fill in all fields and select a priority level.');
+      return;
+    }
+    console.log(newTicket);
+    setIsLoading(true);
+    try {
+      await createTicket(newTicket)
+      setShowNewModal(false);
+      toast.success('Ticket submitted successfully!');
+    }
+    catch (error) {
+      console.error('Error creating ticket:', error);
+      setShowNewModal(false);
+    }
+    finally {
+      setIsLoading(false);
+    }
+  }
 
   const stats = [
     { label: 'Total Submitted', value: myTickets.length.toString(), bg: '#EFF6FF', iconBg: '#DBEAFE', color: '#1D4ED8', icon: '🎫' },
@@ -139,14 +164,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* New ticket button in header */}
-            <button
-              onClick={() => setShowNewModal(true)}
-              style={{ background: '#185FA5', color: '#fff', border: 'none', borderRadius: 10, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
-              className="hidden sm:block"
-            >
-              + New Ticket
-            </button>
+
             <button style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, padding: 6 }}>
               🔔
               <span style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, background: '#EF4444', borderRadius: '50%' }} />
@@ -386,7 +404,7 @@ export default function Dashboard() {
                   {[
                     { value: 'low', label: 'Low', bg: '#F3F4F6', color: '#6B7280', activeBg: '#F3F4F6', activeColor: '#374151' },
                     { value: 'medium', label: 'Medium', bg: '#FFEDD5', color: '#EA580C', activeBg: '#FFEDD5', activeColor: '#EA580C' },
-                    { value: 'high', label: 'High', bg: '#FEE2E2', color: '#DC2626', activeBg: '#FEE2E2', activeColor: '#DC2626' },
+                    { value: 'high', label: 'Critical', bg: '#FEE2E2', color: '#DC2626', activeBg: '#FEE2E2', activeColor: '#DC2626' },
                   ].map(p => (
                     <button key={p.value}
                       onClick={() => setNewTicket({ ...newTicket, priority: p.value })}
@@ -409,9 +427,10 @@ export default function Dashboard() {
                 Cancel
               </button>
               <button
-                onClick={() => { alert('Ticket submitted! (Connect to API next)'); setShowNewModal(false); setNewTicket({ title: '', description: '', priority: 'medium' }) }}
+                onClick={CreateTicket}
+                disabled={isLoading}
                 style={{ flex: 2, height: 44, background: '#185FA5', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
-                Submit Ticket →
+                  {isLoading ? 'Submitting...' : 'Submit Ticket →'}
               </button>
             </div>
           </div>

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { createContext, useContext, useState } from 'react'
 
 interface User {
-  id: string
+  id: number
   name: string
   email: string
   role: string

@@ -43,9 +43,9 @@ router.get('/stats', async (req, res) => {
 // CREATE a ticket
 router.post('/newTicket', async (req, res) => {
   try {
-    const { title, description, status, priority, closed_at, user_id, assigned_employee_id } = req.body
+    const { title, description, status, priority, user_id} = req.body
 
-    if (!title || typeof title !== 'string' || !description || !status || !priority || !user_id || !assigned_employee_id) {
+    if (!title || typeof title !== 'string' || !description || !status || !priority || !user_id) {
       return res.status(400).json({ error: 'All fields are required' })
     }
     // Validate user exists
@@ -59,27 +59,12 @@ router.post('/newTicket', async (req, res) => {
       return res.status(400).json({ error: 'User not found' })
     }
 
-    //Validate employee exists 
-    if (employee_id) {
-      const { data: empExists, error: empError } = await supabase
-        .from('employee')
-        .select('id')
-        .eq('id', employee_id)
-        .single()
-
-      if (empError || !empExists) {
-        return res.status(400).json({ error: 'Employee not found' })
-      }
-    }
-
     const insertObj = {
       title,
       description,
       status,
       priority,
       user_id,
-      assigned_employee_id,
-      closed_at: closed_at ?? null,
     }
 
     const { data, error } = await supabase
