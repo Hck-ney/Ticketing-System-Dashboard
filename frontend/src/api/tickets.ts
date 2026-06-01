@@ -1,16 +1,12 @@
 import { API_URL } from '../config/config'
 
-
-export const getTickets = async () => {
-  const res = await fetch(`${API_URL}/tickets`)
+// fetch tickets for a specific user
+export const userTickets = async (user_id : number) => {
+  const res = await fetch(`${API_URL}/tickets?user_id=${user_id}`)
   return res.json()
 }
 
-export const getStats = async () => {
-  const res = await fetch(`${API_URL}/tickets/stats`)
-  return res.json()
-}
-
+// create a new ticket
 export const createTicket = async (data: {
   title: string
   description: string
@@ -23,5 +19,11 @@ export const createTicket = async (data: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
+  return res.json()
+}
+
+// fetch all tickets (for employees)
+export const allTickets = async () => {
+  const res = await fetch(`${API_URL}/allTickets`)
   return res.json()
 }

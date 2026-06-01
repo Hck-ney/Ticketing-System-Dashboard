@@ -1,34 +1,24 @@
-import { getTickets, getStats } from '../api/tickets'
-
-// export default function Dashboard() {
-//   const [tickets, setTickets] = useState([])
-//   const [stats, setStats] = useState([])
-//   const [loading, setLoading] = useState(true)
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         const ticketsData = await getTickets()
-//         const statsData = await getStats()
-//         setTickets(ticketsData)
-//         setStats(statsData)
-//       } catch (error) {
-//         console.error('Error fetching data:', error)
-//       } finally {
-//         setLoading(false)
-//       }
-//     }
-//     fetchData()
-//   }, [])
-
-//   if (loading) return <div>Loading...</div>
-
-//   // Now use tickets and stats in your JSX
-// }
-
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { allTickets } from '../api/tickets'
+
+
+const statusStyles: Record<string, { bg: string; color: string; dot: string }> = {
+  Open:        { bg: '#FEF9C3', color: '#A16207', dot: '#FACC15' },
+  'In-progress': { bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6' },
+  resolved:    { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
+  closed:      { bg: '#F3F4F6', color: '#4B5563', dot: '#9CA3AF' },
+}
+
+const priorityStyles: Record<string, { bg: string; color: string }> = {
+  high:   { bg: '#FEE2E2', color: '#DC2626' },
+  medium: { bg: '#FFEDD5', color: '#EA580C' },
+  low:    { bg: '#F3F4F6', color: '#6B7280' },
+  High:   { bg: '#FEE2E2', color: '#DC2626' },
+  Medium: { bg: '#FFEDD5', color: '#EA580C' },
+  Low:    { bg: '#F3F4F6', color: '#6B7280' },
+}
 
 const navItems = [
   { icon: '📊', label: 'Dashboard', id: 'dashboard' },
@@ -40,26 +30,13 @@ const navItems = [
 
 // Stats are now fetched from the backend; initial placeholder removed
 
-const recentTickets = [
+const activeTickets = [
   { id: '#1042', title: 'Cannot connect to Wi-Fi', status: 'pending', priority: 'high', user: 'Maria Santos', time: '10 mins ago' },
   { id: '#1041', title: 'Monitor not detected', status: 'in_progress', priority: 'medium', user: 'John Reyes', time: '1 hr ago' },
   { id: '#1040', title: 'Outlook not opening', status: 'resolved', priority: 'low', user: 'Ana Cruz', time: '2 hrs ago' },
   { id: '#1039', title: 'Printer offline', status: 'pending', priority: 'high', user: 'Carlo Lim', time: '3 hrs ago' },
   { id: '#1038', title: 'Account locked', status: 'in_progress', priority: 'medium', user: 'Rica Dela Cruz', time: '5 hrs ago' },
 ]
-
-const statusStyles: Record<string, string> = {
-  pending: 'bg-yellow-100 !text-yellow-700',
-  in_progress: 'bg-blue-100 !text-blue-700',
-  resolved: 'bg-green-100 !text-green-700',
-  closed: 'bg-gray-100 !text-gray-600',
-}
-
-const priorityStyles: Record<string, string> = {
-  high: 'bg-red-100 !text-red-600',
-  medium: 'bg-orange-100 !text-orange-600',
-  low: 'bg-gray-100 !text-gray-500',
-}
 
 const statusLabel: Record<string, string> = {
   pending: 'Pending',
@@ -75,48 +52,32 @@ export default function Employee_Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [stats, setStats] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [ticketList, setTicketList] = useState<UserTicket[]>([])
 
+  type UserTicket = {
+    id: number
+    title: string
+    description: string
+    status: string
+    priority: string
+    created_at: string
+    user_id: number
+    users: {
+      name: string
+    }
+  }
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
 
   useEffect(() => {
-    loading 
+    loading
     const fetchData = async () => {
       try {
-        const statsData = await getStats()
-        const formattedStats = [
-          {
-            label: 'Total Tickets',
-            value: (statsData.total ?? 0).toString(),
-            change: '+12 this week',
-            color: 'bg-blue-50 !text-blue-700',
-            icon: '🎫',
-          },
-          {
-            label: 'Pending',
-            value: (statsData.pending ?? 0).toString(),
-            change: '5 high priority',
-            color: 'bg-yellow-50 !text-yellow-700',
-            icon: '⏳',
-          },
-          {
-            label: 'In Progress',
-            value: (statsData.in_progress ?? 0).toString(),
-            change: '8 assigned today',
-            color: 'bg-purple-50 !text-purple-700',
-            icon: '🔧',
-          },
-          {
-            label: 'Resolved',
-            value: (statsData.resolved ?? 0).toString(),
-            change: '+8 since yesterday',
-            color: 'bg-green-50 !text-green-700',
-            icon: '✅',
-          },
-        ]
-        setStats(formattedStats)
+        const statsData = await allTickets()
+        setTicketList(statsData.tickets)
+        console.log('Fetched stats:', statsData)
       } catch (error) {
         console.error('Error fetching stats:', error)
         setStats([])
@@ -128,6 +89,7 @@ export default function Employee_Dashboard() {
     fetchData()
   }, [])
 
+  
   return (
     <div className="min-h-screen flex bg-gray-50">
 
@@ -164,8 +126,8 @@ export default function Employee_Dashboard() {
               key={item.id}
               onClick={() => { setActive(item.id); setSidebarOpen(false) }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer ${active === item.id
-                  ? 'bg-blue-50 !text-blue-700 font-medium'
-                  : '!text-gray-500 hover:bg-gray-50 hover:!text-gray-700'
+                ? 'bg-blue-50 !text-blue-700 font-medium'
+                : '!text-gray-500 hover:bg-gray-50 hover:!text-gray-700'
                 }`}
             >
               <span>{item.icon}</span>
@@ -209,7 +171,7 @@ export default function Employee_Dashboard() {
               ☰
             </button>
             <div>
-              <h1 className="text-lg font-medium !text-gray-900">Dashboard</h1>
+              <h1 className="text-lg font-medium !text-gray-900">IT Support Dashboard</h1>
               <p className="text-xs !text-gray-400 hidden sm:block">
                 Welcome back, {user?.name} 👋
               </p>
@@ -231,21 +193,56 @@ export default function Employee_Dashboard() {
         {/* Page content */}
         <main className="flex-1 px-4 lg:px-8 py-6 overflow-y-auto">
 
-          {/* Stats cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {stats.map(stat => (
-              <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-4">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg mb-3 ${stat.color}`}>
-                  {stat.icon}
-                </div>
-                <p className="text-2xl font-medium !text-gray-900">{stat.value}</p>
-                <p className="text-xs !text-gray-500 mt-0.5">{stat.label}</p>
-                <p className="text-xs !text-green-600 mt-1">{stat.change}</p>
-              </div>
-            ))}
-          </div>
+          
 
-          {/* Status bar chart */}
+          
+
+          {/* Recent tickets table */}
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-medium !text-gray-900">Active Tickets</h2>
+              <button className="text-xs !text-blue-700 hover:underline cursor-pointer">View all</button>
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-50">
+                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">ID</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Title</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Submitted by</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Priority</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Status</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ticketList.map((ticket, i) => (
+                    <tr key={ticket.id} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === activeTickets.length - 1 ? 'border-0' : ''}`}>
+                      <td className="px-5 py-3 text-xs font-medium !text-blue-700">{ticket.id}</td>
+                      <td className="px-5 py-3 !text-gray-700 font-medium">{ticket.title}</td>
+                      <td className="px-5 py-3 !text-gray-500 text-xs">{ticket.users.name}</td>
+                      
+                      <td className="px-5 py-3">
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${priorityStyles[ticket.priority]}`}>
+                          {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
+                        </span>
+                      </td>
+                      {/* <td className="px-5 py-3">
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusStyles[ticket.status]}`}>
+                          {statusLabel[ticket.status]}
+                        </span>
+                      </td> */}
+                      <td className="px-5 py-3 !text-gray-500 text-xs">{ticket.status}</td>
+                      <td className="px-5 py-3 text-xs !text-gray-400">{ticket.created_at}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Status bar chart */}
           <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-medium !text-gray-900">Ticket Status Overview</h2>
@@ -271,52 +268,9 @@ export default function Employee_Dashboard() {
             </div>
           </div>
 
-          {/* Recent tickets table */}
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-medium !text-gray-900">Recent Tickets</h2>
-              <button className="text-xs !text-blue-700 hover:underline cursor-pointer">View all</button>
-            </div>
-
-            {/* Desktop table */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-50">
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">ID</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Title</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Submitted by</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Priority</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Status</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentTickets.map((ticket, i) => (
-                    <tr key={ticket.id} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === recentTickets.length - 1 ? 'border-0' : ''}`}>
-                      <td className="px-5 py-3 text-xs font-medium !text-blue-700">{ticket.id}</td>
-                      <td className="px-5 py-3 !text-gray-700 font-medium">{ticket.title}</td>
-                      <td className="px-5 py-3 !text-gray-500 text-xs">{ticket.user}</td>
-                      <td className="px-5 py-3">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${priorityStyles[ticket.priority]}`}>
-                          {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusStyles[ticket.status]}`}>
-                          {statusLabel[ticket.status]}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-xs !text-gray-400">{ticket.time}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
             {/* Mobile ticket cards */}
             <div className="sm:hidden divide-y divide-gray-50">
-              {recentTickets.map(ticket => (
+              {activeTickets.map(ticket => (
                 <div key={ticket.id} className="px-4 py-3">
                   <div className="flex items-start justify-between mb-1">
                     <span className="text-xs font-medium !text-blue-700">{ticket.id}</span>

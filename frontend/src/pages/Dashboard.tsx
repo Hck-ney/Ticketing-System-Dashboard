@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { createTicket } from '../api/tickets'
+import { createTicket, userTickets } from '../api/tickets'
 import { toast } from 'sonner'
 
 const myTickets = [
@@ -46,6 +46,10 @@ export default function Dashboard() {
   const Ticket = { title: '', description: '', priority: '', status: 'Open', user_id: user?.id }
   const [newTicket, setNewTicket] = useState(Ticket)
   const [isLoading, setIsLoading] = useState(false)
+  // const TicketList = {
+  //   assigned_employee_id: '', closed_at: '', comment: '', created_at: "", description: "", id: 0, priority: "", status: "", title: "", user_id: 0
+  // }
+  const [userTicketList, setUserTicketList] = useState<UserTicket[]>([])
   const handleLogout = () => { logout(); navigate('/login') }
 
 
@@ -54,7 +58,7 @@ export default function Dashboard() {
       alert('Please fill in all fields and select a priority level.');
       return;
     }
-    console.log(newTicket);
+    //console.log(newTicket);
     setIsLoading(true);
     try {
       await createTicket(newTicket)
@@ -70,14 +74,39 @@ export default function Dashboard() {
     }
   }
 
+  const fetchTickets = async () => {
+    try {
+      const data = await userTickets(user?.id || 0)
+      setUserTicketList(data.tickets)
+    }
+    catch (error) {
+      console.error('Error fetching user tickets:', error);
+    }
+  }
+
+  ``
   const stats = [
-    { label: 'Total Submitted', value: myTickets.length.toString(), bg: '#EFF6FF', iconBg: '#DBEAFE', color: '#1D4ED8', icon: '🎫' },
-    { label: 'Pending', value: myTickets.filter(t => t.status === 'pending').length.toString(), bg: '#FEFCE8', iconBg: '#FEF9C3', color: '#A16207', icon: '⏳' },
-    { label: 'In Progress', value: myTickets.filter(t => t.status === 'in_progress').length.toString(), bg: '#FAF5FF', iconBg: '#F3E8FF', color: '#7E22CE', icon: '🔧' },
-    { label: 'Resolved', value: myTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length.toString(), bg: '#F0FDF4', iconBg: '#DCFCE7', color: '#15803D', icon: '✅' },
+    { label: 'Total Submitted Tickets', value: userTicketList.length.toString(), bg: '#EFF6FF', iconBg: '#DBEAFE', color: '#1D4ED8', icon: '🎫' },
+    { label: 'Active Tickets', value: userTicketList.filter(ticket => ticket.status !== 'Closed').length, bg: '#FEFCE8', iconBg: '#FEF9C3', color: '#A16207', icon: '⏳' },
+    { label: 'In Progress',  value: userTicketList.filter(ticket => ticket.status === 'In-progress').length, bg: '#FAF5FF', iconBg: '#F3E8FF', color: '#7E22CE', icon: '🔧' },
+    { label: 'Resolved', value: userTicketList.filter(ticket => ticket.status === 'Resolved').length, bg: '#F0FDF4', iconBg: '#DCFCE7', color: '#15803D', icon: '✅' },
   ]
 
+  type UserTicket = {
+  id: number
+  title: string
+  description: string
+  status: string
+  priority: string
+  created_at: string
+  user_id: number
+}
+
   return (
+    useEffect(() => {
+      fetchTickets()
+    }, []),
+    console.log('asd',userTicketList.filter(ticket => ticket.status === 'In-progress').length.toString()),
     <div style={{ height: '100vh', display: 'flex', fontFamily: 'system-ui, sans-serif', background: '#F8FAFC', overflow: 'hidden' }}>
 
       {/* Mobile overlay */}
@@ -99,7 +128,7 @@ export default function Dashboard() {
           </div>
           <div>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>IT Support</p>
-            <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Employee Portal</p>
+            <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Help Center</p>
           </div>
         </div>
 
@@ -136,7 +165,7 @@ export default function Dashboard() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</p>
-              <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Employee</p>
+              <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>User</p>
             </div>
           </div>
           <button onClick={handleLogout}
@@ -430,7 +459,7 @@ export default function Dashboard() {
                 onClick={CreateTicket}
                 disabled={isLoading}
                 style={{ flex: 2, height: 44, background: '#185FA5', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
-                  {isLoading ? 'Submitting...' : 'Submit Ticket →'}
+                {isLoading ? 'Submitting...' : 'Submit Ticket →'}
               </button>
             </div>
           </div>
