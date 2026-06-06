@@ -216,43 +216,45 @@ export default function Employee_Dashboard() {
       </div>
 
       {/* Dialog modal */}
-      <Dialog open={!!selectedTicket}>
-        <DialogContent className="sm:max-w-md h-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedTicket?.title}</DialogTitle>
-            <DialogDescription>Ticket #{selectedTicket?.id}</DialogDescription>
-          </DialogHeader>
+      <Dialog open={!!selectedTicket}
+        onOpenChange={(open) => { if (!open) setSelectedTicket(null) }}
+        disablePointerDismissal>
+        <DialogContent className="sm:max-w-md h-auto" >
+        <DialogHeader>
+          <DialogTitle>{selectedTicket?.title}</DialogTitle>
+          <DialogDescription>Ticket #{selectedTicket?.id}</DialogDescription>
+        </DialogHeader>
 
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label>Submitted By</Label>
-              <Input value={selectedTicket?.users.name ?? ''} readOnly />
-            </div>
-            <div className="grid gap-2">
-              <Label>Priority</Label>
-              <Input value={selectedTicket?.priority ?? ''} readOnly />
-            </div>
-            <div className="grid gap-2">
-              <Label>Created</Label>
-              <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly />
-            </div>
-            <div className="grid gap-2">
-              <Label>Description</Label>
-              <Textarea
-                value={selectedTicket?.description ?? ''}
-                readOnly
-                className="h-40 resize-none overflow-y-auto"
-              />
-            </div>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label>Submitted By</Label>
+            <Input value={selectedTicket?.users.name ?? ''} readOnly />
           </div>
+          <div className="grid gap-2">
+            <Label>Priority</Label>
+            <Input value={selectedTicket?.priority ?? ''} readOnly />
+          </div>
+          <div className="grid gap-2">
+            <Label>Created</Label>
+            <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly />
+          </div>
+          <div className="grid gap-2">
+            <Label>Description</Label>
+            <Textarea
+              value={selectedTicket?.description ?? ''}
+              readOnly
+              className="h-40 resize-none overflow-y-auto"
+            />
+          </div>
+        </div>
 
-          <DialogFooter className="flex justify-between">
-            <Button type="button" className="bg-blue-600 hover:bg-blue-700 text-white">
-              Assign to Me
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        <DialogFooter className="flex justify-between">
+          <Button type="button" className="bg-blue-600 hover:bg-blue-700 text-white">
+            Assign to Me
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </div >
   )
 }
