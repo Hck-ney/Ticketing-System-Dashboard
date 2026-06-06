@@ -3,59 +3,31 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { allTickets } from '../api/tickets'
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Table,
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
 
-const invoices = [
-  {
-    invoice: "INV001",
-    paymentStatus: "Paid",
-    totalAmount: "$250.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV002",
-    paymentStatus: "Pending",
-    totalAmount: "$150.00",
-    paymentMethod: "PayPal",
-  },
-  {
-    invoice: "INV003",
-    paymentStatus: "Unpaid",
-    totalAmount: "$350.00",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    invoice: "INV004",
-    paymentStatus: "Paid",
-    totalAmount: "$450.00",
-    paymentMethod: "Credit Card",
-  }
-]
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
 
-const statusStyles: Record<string, { bg: string; color: string; dot: string }> = {
-  Open: { bg: '#FEF9C3', color: '#A16207', dot: '#FACC15' },
-  'In-progress': { bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6' },
-  resolved: { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
-  closed: { bg: '#F3F4F6', color: '#4B5563', dot: '#9CA3AF' },
-}
 
-const priorityStyles: Record<string, { bg: string; color: string }> = {
-  high: { bg: '#FEE2E2', color: '#DC2626' },
-  medium: { bg: '#FFEDD5', color: '#EA580C' },
-  low: { bg: '#F3F4F6', color: '#6B7280' },
-  High: { bg: '#FEE2E2', color: '#DC2626' },
-  Medium: { bg: '#FFEDD5', color: '#EA580C' },
-  Low: { bg: '#F3F4F6', color: '#6B7280' },
-}
 
 const navItems = [
   { icon: '📊', label: 'Dashboard', id: 'dashboard' },
@@ -64,23 +36,6 @@ const navItems = [
   { icon: '📈', label: 'Analytics', id: 'analytics' },
   { icon: '⚙️', label: 'Settings', id: 'settings' },
 ]
-
-// Stats are now fetched from the backend; initial placeholder removed
-
-const activeTickets = [
-  { id: '#1042', title: 'Cannot connect to Wi-Fi', status: 'pending', priority: 'high', user: 'Maria Santos', time: '10 mins ago' },
-  { id: '#1041', title: 'Monitor not detected', status: 'in_progress', priority: 'medium', user: 'John Reyes', time: '1 hr ago' },
-  { id: '#1040', title: 'Outlook not opening', status: 'resolved', priority: 'low', user: 'Ana Cruz', time: '2 hrs ago' },
-  { id: '#1039', title: 'Printer offline', status: 'pending', priority: 'high', user: 'Carlo Lim', time: '3 hrs ago' },
-  { id: '#1038', title: 'Account locked', status: 'in_progress', priority: 'medium', user: 'Rica Dela Cruz', time: '5 hrs ago' },
-]
-
-const statusLabel: Record<string, string> = {
-  pending: 'Pending',
-  in_progress: 'In Progress',
-  resolved: 'Resolved',
-  closed: 'Closed',
-}
 
 export default function Employee_Dashboard() {
   const { user, logout } = useAuth()
@@ -103,6 +58,7 @@ export default function Employee_Dashboard() {
       name: string
     }
   }
+  const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -189,7 +145,6 @@ export default function Employee_Dashboard() {
             onClick={handleLogout}
             className="justify-center"
           >
-
             Sign out
           </Button>
         </div>
@@ -228,126 +183,76 @@ export default function Employee_Dashboard() {
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 px-4 lg:px-8 py-6 overflow-y-auto">
-          {/* Recent tickets table */}
-          <div className="rounded-xl border border-gray-100 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-medium">Active Tickets</h2>
-              <button className="text-xs hover:underline cursor-pointer">View all</button>
-            </div>
 
-            {/* Desktop table */}
-            {/* <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-50">
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">ID</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Title</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Submitted by</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Priority</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Status</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium !text-gray-400">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ticketList.map((ticket, i) => (
-                    <tr key={ticket.id} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === activeTickets.length - 1 ? 'border-0' : ''}`}>
-                      <td className="px-5 py-3 text-xs font-medium !text-blue-700">{ticket.id}</td>
-                      <td className="px-5 py-3 !text-gray-700 font-medium">{ticket.title}</td>
-                      <td className="px-5 py-3 !text-gray-500 text-xs">{ticket.users.name}</td>
-
-                      <td className="px-5 py-3">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${priorityStyles[ticket.priority]}`}>
-                          {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 !text-gray-500 text-xs">{ticket.status}</td>
-                      <td className="px-5 py-3 text-xs !text-gray-400">{ticket.created_at}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div> */}
-
-
-
-            {/* Mobile ticket cards */}
-            <div className="sm:hidden divide-y divide-gray-50">
-              {activeTickets.map(ticket => (
-                <div key={ticket.id} className="px-4 py-3">
-                  <div className="flex items-start justify-between mb-1">
-                    <span className="text-xs font-medium !text-blue-700">{ticket.id}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusStyles[ticket.status]}`}>
-                      {statusLabel[ticket.status]}
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium !text-gray-800 mb-1">{ticket.title}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs !text-gray-400">{ticket.user}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${priorityStyles[ticket.priority]}`}>
-                      {ticket.priority}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Status bar chart */}
-          <div className="rounded-xl border border-gray-100 p-5 mb-6 mt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-medium">Ticket Status Overview</h2>
-              <span className="text-xs">Last 7 days</span>
-            </div>
-            <div className="space-y-3">
-              {[
-                { label: 'Resolved', value: 66, total: 128, color: 'bg-green-500' },
-                { label: 'Pending', value: 34, total: 128, color: 'bg-yellow-400' },
-                { label: 'In Progress', value: 28, total: 128, color: 'bg-blue-500' },
-              ].map(bar => (
-                <div key={bar.label} className="flex items-center gap-3">
-                  <span className="text-xs !text-gray-500 w-20 shrink-0">{bar.label}</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${bar.color}`}
-                      style={{ width: `${(bar.value / bar.total) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs !text-gray-500 w-6 text-right">{bar.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Table className="w-full bg-background">
+        <div className="px-8">
+          <Table className="w-full overflow-hidden bg-background ">
             <TableCaption>A list of Active Tickets.</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Invoice</TableHead>
+                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Submitted By</TableHead>
+                <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Time</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.invoice}>
-                  <TableCell className="font-medium">{invoice.invoice}</TableCell>
-                  <TableCell>{invoice.paymentStatus}</TableCell>
-                  <TableCell>{invoice.paymentMethod}</TableCell>
-                  <TableCell className="text-right">{invoice.totalAmount}</TableCell>
+              {ticketList.map((ticket) => (
+                <TableRow key={ticket.id} onClick={() => { setSelectedTicket(ticket); console.log(ticket); }}>
+                  <TableCell className="font-medium">{ticket.id}</TableCell>
+                  <TableCell>{ticket.title}</TableCell>
+                  <TableCell>{ticket.users.name}</TableCell>
+                  <TableCell>{ticket.priority}</TableCell>
+                  <TableCell>{ticket.status}</TableCell>
+                  <TableCell>
+                    {ticket.created_at.replace("T", " ").split(".")[0]}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={3}>Total</TableCell>
-                <TableCell className="text-right">$2,500.00</TableCell>
-              </TableRow>
-            </TableFooter>
           </Table>
-        </main>
+        </div>
       </div>
+
+      {/* Dialog modal */}
+      <Dialog open={!!selectedTicket}>
+        <DialogContent className="sm:max-w-md h-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedTicket?.title}</DialogTitle>
+            <DialogDescription>Ticket #{selectedTicket?.id}</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label>Submitted By</Label>
+              <Input value={selectedTicket?.users.name ?? ''} readOnly />
+            </div>
+            <div className="grid gap-2">
+              <Label>Priority</Label>
+              <Input value={selectedTicket?.priority ?? ''} readOnly />
+            </div>
+            <div className="grid gap-2">
+              <Label>Created</Label>
+              <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly />
+            </div>
+            <div className="grid gap-2">
+              <Label>Description</Label>
+              <Textarea
+                value={selectedTicket?.description ?? ''}
+                readOnly
+                className="h-40 resize-none overflow-y-auto"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex justify-between">
+            <Button type="button" className="bg-blue-600 hover:bg-blue-700 text-white">
+              Assign to Me
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -74,7 +74,7 @@ const createTicket = async (req, res) => {
     if (userError || !userExists) {
       return res.status(400).json({ error: 'User not found' })
     }
-
+    
     const insertObj = {
       title,
       description,
