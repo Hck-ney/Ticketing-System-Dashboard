@@ -2,22 +2,59 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { allTickets } from '../api/tickets'
+import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
+const invoices = [
+  {
+    invoice: "INV001",
+    paymentStatus: "Paid",
+    totalAmount: "$250.00",
+    paymentMethod: "Credit Card",
+  },
+  {
+    invoice: "INV002",
+    paymentStatus: "Pending",
+    totalAmount: "$150.00",
+    paymentMethod: "PayPal",
+  },
+  {
+    invoice: "INV003",
+    paymentStatus: "Unpaid",
+    totalAmount: "$350.00",
+    paymentMethod: "Bank Transfer",
+  },
+  {
+    invoice: "INV004",
+    paymentStatus: "Paid",
+    totalAmount: "$450.00",
+    paymentMethod: "Credit Card",
+  }
+]
 
 const statusStyles: Record<string, { bg: string; color: string; dot: string }> = {
-  Open:        { bg: '#FEF9C3', color: '#A16207', dot: '#FACC15' },
+  Open: { bg: '#FEF9C3', color: '#A16207', dot: '#FACC15' },
   'In-progress': { bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6' },
-  resolved:    { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
-  closed:      { bg: '#F3F4F6', color: '#4B5563', dot: '#9CA3AF' },
+  resolved: { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
+  closed: { bg: '#F3F4F6', color: '#4B5563', dot: '#9CA3AF' },
 }
 
 const priorityStyles: Record<string, { bg: string; color: string }> = {
-  high:   { bg: '#FEE2E2', color: '#DC2626' },
+  high: { bg: '#FEE2E2', color: '#DC2626' },
   medium: { bg: '#FFEDD5', color: '#EA580C' },
-  low:    { bg: '#F3F4F6', color: '#6B7280' },
-  High:   { bg: '#FEE2E2', color: '#DC2626' },
+  low: { bg: '#F3F4F6', color: '#6B7280' },
+  High: { bg: '#FEE2E2', color: '#DC2626' },
   Medium: { bg: '#FFEDD5', color: '#EA580C' },
-  Low:    { bg: '#F3F4F6', color: '#6B7280' },
+  Low: { bg: '#F3F4F6', color: '#6B7280' },
 }
 
 const navItems = [
@@ -89,9 +126,9 @@ export default function Employee_Dashboard() {
     fetchData()
   }, [])
 
-  
+
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-background text-foreground">
 
       {/* Sidebar overlay on mobile */}
       {sidebarOpen && (
@@ -103,19 +140,19 @@ export default function Employee_Dashboard() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-100 z-30 flex flex-col
+        fixed top-0 left-0 h-full w-64 border-r border-gray-100 z-30 flex flex-col
         transition-transform duration-200
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:z-auto
       `}>
         {/* Brand */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
+        <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 ">
           <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center">
             <span className="text-white text-sm">🖥</span>
           </div>
           <div>
-            <p className="text-sm font-medium !text-gray-900">IT Support</p>
-            <p className="text-xs !text-gray-400">Dashboard</p>
+            <p className="">IT Support</p>
+            <p className="">Dashboard</p>
           </div>
         </div>
 
@@ -148,12 +185,13 @@ export default function Employee_Dashboard() {
               <p className="text-sm font-medium !text-gray-900 truncate">{user?.name}</p>
             </div>
           </div>
-          <button
+          <Button
             onClick={handleLogout}
-            className="w-full text-sm !text-red-500 hover:bg-red-50 py-2 rounded-lg transition-colors cursor-pointer"
+            className="justify-center"
           >
+
             Sign out
-          </button>
+          </Button>
         </div>
       </aside>
 
@@ -161,17 +199,17 @@ export default function Employee_Dashboard() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Top bar */}
-        <header className="bg-white border-b border-gray-100 px-4 lg:px-8 py-4 flex items-center justify-between">
+        <header className="border-b border-gray-100 px-4 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Mobile menu button */}
             <button
-              className="lg:hidden !text-gray-500 cursor-pointer"
+              className="lg:hidden cursor-pointer"
               onClick={() => setSidebarOpen(true)}
             >
               ☰
             </button>
             <div>
-              <h1 className="text-lg font-medium !text-gray-900">IT Support Dashboard</h1>
+              <h1 className="text-lg font-medium">IT Support Dashboard</h1>
               <p className="text-xs !text-gray-400 hidden sm:block">
                 Welcome back, {user?.name} 👋
               </p>
@@ -192,20 +230,15 @@ export default function Employee_Dashboard() {
 
         {/* Page content */}
         <main className="flex-1 px-4 lg:px-8 py-6 overflow-y-auto">
-
-          
-
-          
-
           {/* Recent tickets table */}
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <div className="rounded-xl border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-medium !text-gray-900">Active Tickets</h2>
-              <button className="text-xs !text-blue-700 hover:underline cursor-pointer">View all</button>
+              <h2 className="text-sm font-medium">Active Tickets</h2>
+              <button className="text-xs hover:underline cursor-pointer">View all</button>
             </div>
 
             {/* Desktop table */}
-            <div className="hidden sm:block overflow-x-auto">
+            {/* <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-50">
@@ -223,50 +256,21 @@ export default function Employee_Dashboard() {
                       <td className="px-5 py-3 text-xs font-medium !text-blue-700">{ticket.id}</td>
                       <td className="px-5 py-3 !text-gray-700 font-medium">{ticket.title}</td>
                       <td className="px-5 py-3 !text-gray-500 text-xs">{ticket.users.name}</td>
-                      
+
                       <td className="px-5 py-3">
                         <span className={`text-xs px-2 py-1 rounded-full font-medium ${priorityStyles[ticket.priority]}`}>
                           {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
                         </span>
                       </td>
-                      {/* <td className="px-5 py-3">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusStyles[ticket.status]}`}>
-                          {statusLabel[ticket.status]}
-                        </span>
-                      </td> */}
                       <td className="px-5 py-3 !text-gray-500 text-xs">{ticket.status}</td>
                       <td className="px-5 py-3 text-xs !text-gray-400">{ticket.created_at}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
+            </div> */}
 
-            {/* Status bar chart */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-medium !text-gray-900">Ticket Status Overview</h2>
-              <span className="text-xs !text-gray-400">Last 7 days</span>
-            </div>
-            <div className="space-y-3">
-              {[
-                { label: 'Resolved', value: 66, total: 128, color: 'bg-green-500' },
-                { label: 'Pending', value: 34, total: 128, color: 'bg-yellow-400' },
-                { label: 'In Progress', value: 28, total: 128, color: 'bg-blue-500' },
-              ].map(bar => (
-                <div key={bar.label} className="flex items-center gap-3">
-                  <span className="text-xs !text-gray-500 w-20 shrink-0">{bar.label}</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${bar.color}`}
-                      style={{ width: `${(bar.value / bar.total) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs !text-gray-500 w-6 text-right">{bar.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+
 
             {/* Mobile ticket cards */}
             <div className="sm:hidden divide-y divide-gray-50">
@@ -289,6 +293,59 @@ export default function Employee_Dashboard() {
               ))}
             </div>
           </div>
+          {/* Status bar chart */}
+          <div className="rounded-xl border border-gray-100 p-5 mb-6 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-medium">Ticket Status Overview</h2>
+              <span className="text-xs">Last 7 days</span>
+            </div>
+            <div className="space-y-3">
+              {[
+                { label: 'Resolved', value: 66, total: 128, color: 'bg-green-500' },
+                { label: 'Pending', value: 34, total: 128, color: 'bg-yellow-400' },
+                { label: 'In Progress', value: 28, total: 128, color: 'bg-blue-500' },
+              ].map(bar => (
+                <div key={bar.label} className="flex items-center gap-3">
+                  <span className="text-xs !text-gray-500 w-20 shrink-0">{bar.label}</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${bar.color}`}
+                      style={{ width: `${(bar.value / bar.total) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs !text-gray-500 w-6 text-right">{bar.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Table className="w-full bg-background">
+            <TableCaption>A list of Active Tickets.</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Invoice</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Method</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invoices.map((invoice) => (
+                <TableRow key={invoice.invoice}>
+                  <TableCell className="font-medium">{invoice.invoice}</TableCell>
+                  <TableCell>{invoice.paymentStatus}</TableCell>
+                  <TableCell>{invoice.paymentMethod}</TableCell>
+                  <TableCell className="text-right">{invoice.totalAmount}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={3}>Total</TableCell>
+                <TableCell className="text-right">$2,500.00</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         </main>
       </div>
     </div>
