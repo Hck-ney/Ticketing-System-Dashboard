@@ -185,33 +185,34 @@ export default function Employee_Dashboard() {
 
 
         <div className="px-8">
-          <Table className="w-full overflow-hidden bg-background ">
-            <TableCaption>A list of Active Tickets.</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Submitted By</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Time</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ticketList.map((ticket) => (
-                <TableRow key={ticket.id} onClick={() => { setSelectedTicket(ticket); console.log(ticket); }}>
-                  <TableCell className="font-medium">{ticket.id}</TableCell>
-                  <TableCell>{ticket.title}</TableCell>
-                  <TableCell>{ticket.users.name}</TableCell>
-                  <TableCell>{ticket.priority}</TableCell>
-                  <TableCell>{ticket.status}</TableCell>
-                  <TableCell>
-                    {ticket.created_at.replace("T", " ").split(".")[0]}
-                  </TableCell>
+          <div className="h-[400px] overflow-y-auto rounded-md border">
+            <Table className="w-full overflow-hidden bg-background ">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">ID</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Submitted By</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Time</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {ticketList.map((ticket) => (
+                  <TableRow key={ticket.id} onClick={() => { setSelectedTicket(ticket); console.log(ticket); }}>
+                    <TableCell className="font-medium">{ticket.id}</TableCell>
+                    <TableCell>{ticket.title}</TableCell>
+                    <TableCell>{ticket.users.name}</TableCell>
+                    <TableCell>{ticket.priority}</TableCell>
+                    <TableCell>{ticket.status}</TableCell>
+                    <TableCell>
+                      {ticket.created_at.replace("T", " ").split(".")[0]}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 
@@ -219,42 +220,42 @@ export default function Employee_Dashboard() {
       <Dialog open={!!selectedTicket}
         onOpenChange={(open) => { if (!open) setSelectedTicket(null) }}
         disablePointerDismissal>
-        <DialogContent className="sm:max-w-md h-auto" >
-        <DialogHeader>
-          <DialogTitle>{selectedTicket?.title}</DialogTitle>
-          <DialogDescription>Ticket #{selectedTicket?.id}</DialogDescription>
-        </DialogHeader>
+        <DialogContent className="sm:max-w-md" >
+          <DialogHeader>
+            <DialogTitle>{selectedTicket?.title}</DialogTitle>
+            <DialogDescription>Ticket #{selectedTicket?.id}</DialogDescription>
+          </DialogHeader>
 
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label>Submitted By</Label>
-            <Input value={selectedTicket?.users.name ?? ''} readOnly />
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label>Submitted By</Label>
+              <Input value={selectedTicket?.users.name ?? ''} readOnly />
+            </div>
+            <div className="grid gap-2">
+              <Label>Priority</Label>
+              <Input value={selectedTicket?.priority ?? ''} readOnly />
+            </div>
+            <div className="grid gap-2">
+              <Label>Created</Label>
+              <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly />
+            </div>
+            <div className="grid gap-2">
+              <Label>Description</Label>
+              <Textarea
+                value={selectedTicket?.description ?? ''}
+                readOnly
+                className="h-40 resize-none overflow-y-auto"
+              />
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label>Priority</Label>
-            <Input value={selectedTicket?.priority ?? ''} readOnly />
-          </div>
-          <div className="grid gap-2">
-            <Label>Created</Label>
-            <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly />
-          </div>
-          <div className="grid gap-2">
-            <Label>Description</Label>
-            <Textarea
-              value={selectedTicket?.description ?? ''}
-              readOnly
-              className="h-40 resize-none overflow-y-auto"
-            />
-          </div>
-        </div>
 
-        <DialogFooter className="flex justify-between">
-          <Button type="button" className="bg-blue-600 hover:bg-blue-700 text-white">
-            Assign to Me
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter className="flex justify-between">
+            <Button type="button" className="bg-blue-600 hover:bg-blue-700 text-white">
+              Assign to Me
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div >
   )
 }

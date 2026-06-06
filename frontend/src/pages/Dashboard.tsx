@@ -58,7 +58,6 @@ export default function Dashboard() {
       alert('Please fill in all fields and select a priority level.');
       return;
     }
-    //console.log(newTicket);
     setIsLoading(true);
     try {
       await createTicket(newTicket)
@@ -68,6 +67,7 @@ export default function Dashboard() {
     catch (error) {
       console.error('Error creating ticket:', error);
       setShowNewModal(false);
+      toast.error('Error submitting ticket')
     }
     finally {
       setIsLoading(false);
@@ -106,7 +106,6 @@ export default function Dashboard() {
     useEffect(() => {
       fetchTickets()
     }, []),
-    console.log('asd',userTicketList.filter(ticket => ticket.status === 'In-progress').length.toString()),
     <div style={{ height: '100vh', display: 'flex', fontFamily: 'system-ui, sans-serif', background: '#F8FAFC', overflow: 'hidden' }}>
 
       {/* Mobile overlay */}
@@ -431,9 +430,9 @@ export default function Dashboard() {
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 7 }}>Priority</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                   {[
-                    { value: 'low', label: 'Low', bg: '#F3F4F6', color: '#6B7280', activeBg: '#F3F4F6', activeColor: '#374151' },
-                    { value: 'medium', label: 'Medium', bg: '#FFEDD5', color: '#EA580C', activeBg: '#FFEDD5', activeColor: '#EA580C' },
-                    { value: 'high', label: 'Critical', bg: '#FEE2E2', color: '#DC2626', activeBg: '#FEE2E2', activeColor: '#DC2626' },
+                    { value: 'Low', label: 'Low', bg: '#F3F4F6', color: '#6B7280', activeBg: '#F3F4F6', activeColor: '#374151' },
+                    { value: 'Medium', label: 'Medium', bg: '#FFEDD5', color: '#EA580C', activeBg: '#FFEDD5', activeColor: '#EA580C' },
+                    { value: 'High', label: 'Critical', bg: '#FEE2E2', color: '#DC2626', activeBg: '#FEE2E2', activeColor: '#DC2626' },
                   ].map(p => (
                     <button key={p.value}
                       onClick={() => setNewTicket({ ...newTicket, priority: p.value })}

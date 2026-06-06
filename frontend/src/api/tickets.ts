@@ -14,7 +14,7 @@ export const createTicket = async (data: {
   priority: string
   user_id?: number | null;
 }) => {
-  const res = await fetch(`${API_URL}/tickets/newTicket`, {
+  const res = await fetch(`${API_URL}/createTicket`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
