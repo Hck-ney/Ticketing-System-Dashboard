@@ -13,16 +13,16 @@ const myTickets = [
 ]
 
 const statusStyle: Record<string, { bg: string; color: string; dot: string }> = {
-  pending: { bg: '#FEF9C3', color: '#A16207', dot: '#FACC15' },
-  in_progress: { bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6' },
-  resolved: { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
-  closed: { bg: '#F3F4F6', color: '#4B5563', dot: '#9CA3AF' },
+  pending: { bg: 'bg-yellow-100', color: 'text-amber-700', dot: 'bg-yellow-400' },
+  in_progress: { bg: 'bg-blue-100', color: 'text-blue-700', dot: 'bg-blue-500' },
+  resolved: { bg: 'bg-green-100', color: 'text-green-700', dot: 'bg-green-500' },
+  closed: { bg: 'bg-gray-100', color: 'text-gray-600', dot: 'bg-gray-400' },
 }
 
 const priorityStyle: Record<string, { bg: string; color: string }> = {
-  high: { bg: '#FEE2E2', color: '#DC2626' },
-  medium: { bg: '#FFEDD5', color: '#EA580C' },
-  low: { bg: '#F3F4F6', color: '#6B7280' },
+  high: { bg: 'bg-red-100', color: 'text-red-600' },
+  medium: { bg: 'bg-orange-100', color: 'text-orange-600' },
+  low: { bg: 'bg-gray-100', color: 'text-gray-500' },
 }
 
 const statusLabel: Record<string, string> = {
@@ -32,7 +32,6 @@ const statusLabel: Record<string, string> = {
 const navItems = [
   { icon: '📊', label: 'Overview', id: 'overview' },
   { icon: '🎫', label: 'My Tickets', id: 'tickets' },
-  { icon: '➕', label: 'New Ticket', id: 'new' },
   { icon: '⚙️', label: 'Settings', id: 'settings' },
 ]
 
@@ -46,12 +45,8 @@ export default function Dashboard() {
   const Ticket = { title: '', description: '', priority: '', status: 'Open', user_id: user?.id }
   const [newTicket, setNewTicket] = useState(Ticket)
   const [isLoading, setIsLoading] = useState(false)
-  // const TicketList = {
-  //   assigned_employee_id: '', closed_at: '', comment: '', created_at: "", description: "", id: 0, priority: "", status: "", title: "", user_id: 0
-  // }
   const [userTicketList, setUserTicketList] = useState<UserTicket[]>([])
   const handleLogout = () => { logout(); navigate('/login') }
-
 
   const CreateTicket = async () => {
     if (!newTicket.title || !newTicket.description || !newTicket.priority) {
@@ -84,216 +79,179 @@ export default function Dashboard() {
     }
   }
 
-  ``
   const stats = [
-    { label: 'Total Submitted Tickets', value: userTicketList.length.toString(), bg: '#EFF6FF', iconBg: '#DBEAFE', color: '#1D4ED8', icon: '🎫' },
-    { label: 'Active Tickets', value: userTicketList.filter(ticket => ticket.status !== 'Closed').length, bg: '#FEFCE8', iconBg: '#FEF9C3', color: '#A16207', icon: '⏳' },
-    { label: 'In Progress',  value: userTicketList.filter(ticket => ticket.status === 'In-progress').length, bg: '#FAF5FF', iconBg: '#F3E8FF', color: '#7E22CE', icon: '🔧' },
-    { label: 'Resolved', value: userTicketList.filter(ticket => ticket.status === 'Resolved').length, bg: '#F0FDF4', iconBg: '#DCFCE7', color: '#15803D', icon: '✅' },
+    { label: 'Total Submitted Tickets', value: userTicketList.length.toString(), bg: 'bg-blue-50', iconBg: 'bg-blue-100', color: 'text-blue-700', icon: '🎫' },
+    { label: 'Active Tickets', value: userTicketList.filter(ticket => ticket.status !== 'Closed').length, bg: 'bg-yellow-50', iconBg: 'bg-yellow-100', color: 'text-amber-700', icon: '⏳' },
+    { label: 'In Progress', value: userTicketList.filter(ticket => ticket.status === 'In-progress').length, bg: 'bg-purple-50', iconBg: 'bg-purple-100', color: 'text-purple-700', icon: '🔧' },
+    { label: 'Resolved', value: userTicketList.filter(ticket => ticket.status === 'Resolved').length, bg: 'bg-green-50', iconBg: 'bg-green-100', color: 'text-green-700', icon: '✅' },
   ]
 
   type UserTicket = {
-  id: number
-  title: string
-  description: string
-  status: string
-  priority: string
-  created_at: string
-  user_id: number
-}
+    id: number
+    title: string
+    description: string
+    status: string
+    priority: string
+    created_at: string
+    user_id: number
+  }
+
+  useEffect(() => {
+    fetchTickets()
+  }, [])
 
   return (
-    useEffect(() => {
-      fetchTickets()
-    }, []),
-    <div style={{ height: '100vh', display: 'flex', fontFamily: 'system-ui, sans-serif', background: '#F8FAFC', overflow: 'hidden' }}>
+    <div className="h-screen flex font-sans bg-slate-50 overflow-hidden">
 
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-20 lg:hidden"
-          style={{ background: 'rgba(0,0,0,0.3)' }}
+        <div className="fixed inset-0 z-20 bg-black/30 lg:hidden"
           onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* ── Sidebar ── */}
       <aside
-        className={`fixed top-0 left-0 h-full z-30 flex flex-col lg:relative lg:translate-x-0 lg:z-auto transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{ width: 240, background: '#fff', borderRight: '1px solid #F1F5F9', flexShrink: 0 }}
+        className={`fixed top-0 left-0 h-full z-30 flex flex-col lg:relative lg:translate-x-0 lg:z-auto transition-transform duration-200 w-60 bg-white border-r border-slate-100 shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '18px 20px', borderBottom: '1px solid #F1F5F9' }}>
-          <div style={{ width: 38, height: 38, background: '#185FA5', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span style={{ fontSize: 20 }}>🖥</span>
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+          <div className="w-10 h-10 bg-blue-700 rounded-xl flex items-center justify-center shrink-0">
+            <span className="text-xl">🖥</span>
           </div>
           <div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>IT Support</p>
-            <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Help Center</p>
+            <p className="text-base font-bold text-slate-900 m-0">IT Support</p>
+            <p className="text-xs text-slate-400 m-0">Help Center</p>
           </div>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <nav className="flex-1 px-2.5 py-3 flex flex-col gap-0.5">
           {navItems.map(item => (
             <button key={item.id}
               onClick={() => {
                 if (item.id === 'new') { setShowNewModal(true); setSidebarOpen(false) }
                 else { setActive(item.id); setSidebarOpen(false) }
               }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
-                borderRadius: 8, border: 'none', cursor: 'pointer', width: '100%',
-                textAlign: 'left', fontSize: 14, fontWeight: active === item.id ? 600 : 400,
-                background: item.id === 'new' ? '#EFF6FF' : active === item.id ? '#EFF6FF' : 'transparent',
-                color: item.id === 'new' ? '#185FA5' : active === item.id ? '#185FA5' : '#64748B',
-                transition: 'all 0.15s', fontFamily: 'inherit',
-              }}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-none cursor-pointer w-full text-left text-sm font-sans transition-all duration-150 ${active === item.id ? 'font-semibold' : 'font-normal'} ${
+                item.id === 'new' || active === item.id
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'bg-transparent text-slate-500'
+              }`}
             >
-              <span style={{ fontSize: 17 }}>{item.icon}</span>
+              <span className="text-lg">{item.icon}</span>
               {item.label}
             </button>
           ))}
         </nav>
 
         {/* User */}
-        <div style={{ padding: '14px 12px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#185FA5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>
+        <div className="px-3 py-3.5 border-t border-slate-100">
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <div className="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center shrink-0">
+              <span className="text-white text-sm font-bold">
                 {user?.name?.charAt(0).toUpperCase()}
               </span>
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</p>
-              <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>User</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-slate-900 m-0 overflow-hidden text-ellipsis whitespace-nowrap">{user?.name}</p>
+              <p className="text-xs text-slate-400 m-0">User</p>
             </div>
           </div>
           <button onClick={handleLogout}
-            style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: 'transparent', color: '#EF4444', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            className="w-full py-2 rounded-lg border-none bg-transparent text-red-500 text-sm font-semibold cursor-pointer font-sans">
             🚪 Sign out
           </button>
         </div>
       </aside>
 
       {/* ── Main ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* Header */}
-        <header style={{ background: '#fff', borderBottom: '1px solid #F1F5F9', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <button className="lg:hidden" onClick={() => setSidebarOpen(true)}
-              style={{ fontSize: 22, background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>☰</button>
+        <header className="bg-white border-b border-slate-100 px-7 h-16 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3.5">
+            <button className="lg:hidden text-2xl bg-none border-none cursor-pointer text-slate-500" onClick={() => setSidebarOpen(true)}>☰</button>
             <div>
-              <p style={{ fontSize: 17, fontWeight: 700, color: '#0F172A', margin: 0, textTransform: 'capitalize' }}>
+              <p className="text-lg font-bold text-slate-900 m-0 capitalize">
                 {active === 'overview' ? 'My Dashboard' : active === 'tickets' ? 'My Tickets' : 'Settings'}
               </p>
-              <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>
+              <p className="text-xs text-slate-400 m-0">
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </p>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-
-            <button style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, padding: 6 }}>
+          <div className="flex items-center gap-2.5">
+            <button className="relative bg-none border-none cursor-pointer text-2xl p-1.5">
               🔔
-              <span style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, background: '#EF4444', borderRadius: '50%' }} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 12, borderLeft: '1px solid #F1F5F9' }}>
-              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#185FA5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>{user?.name?.charAt(0).toUpperCase()}</span>
+            <div className="flex items-center gap-2 pl-3 border-l border-slate-100">
+              <div className="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center">
+                <span className="text-white text-sm font-bold">{user?.name?.charAt(0).toUpperCase()}</span>
               </div>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#0F172A' }} className="hidden sm:block">{user?.name}</span>
+              <span className="text-sm font-semibold text-slate-900 hidden sm:block">{user?.name}</span>
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <main style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+        <main className="flex-1 overflow-y-auto px-7 py-6">
 
           {/* Welcome banner */}
-          <div style={{ background: '#185FA5', borderRadius: 16, padding: '22px 28px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="bg-blue-700 rounded-2xl px-7 py-5 mb-6 flex items-center justify-between">
             <div>
-              <p style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 5px' }}>
+              <p className="text-xl font-bold text-white m-0 mb-1.5">
                 Hi, {user?.name?.split(' ')[0]} 👋
               </p>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+              <p className="text-sm text-white/70 m-0">
                 Track your IT support requests and stay updated on their status.
               </p>
             </div>
             <button
               onClick={() => setShowNewModal(true)}
-              style={{ background: '#fff', color: '#185FA5', border: 'none', borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer', flexShrink: 0, fontFamily: 'inherit' }}
-              className="hidden sm:block"
+              className="hidden sm:block bg-white text-blue-700 border-none rounded-xl px-5 py-2.5 text-sm font-bold cursor-pointer shrink-0 font-sans"
             >
               + New Ticket
             </button>
           </div>
 
           {/* Stat cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 24 }}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4 mb-6">
             {stats.map(stat => (
-              <div key={stat.label} style={{ background: stat.bg, borderRadius: 14, padding: '18px 20px' }}>
-                <div style={{ width: 38, height: 38, background: stat.iconBg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 14 }}>
+              <div key={stat.label} className={`${stat.bg} rounded-xl px-5 py-4`}>
+                <div className={`w-10 h-10 ${stat.iconBg} rounded-xl flex items-center justify-center text-xl mb-3.5`}>
                   {stat.icon}
                 </div>
-                <p style={{ fontSize: 28, fontWeight: 800, color: '#0F172A', margin: '0 0 3px' }}>{stat.value}</p>
-                <p style={{ fontSize: 13, color: '#64748B', margin: 0, fontWeight: 500 }}>{stat.label}</p>
+                <p className="text-3xl font-extrabold text-slate-900 m-0 mb-1">{stat.value}</p>
+                <p className="text-xs text-slate-500 m-0 font-medium">{stat.label}</p>
               </div>
             ))}
           </div>
 
           {/* My Tickets */}
-          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #F1F5F9', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid #F1F5F9' }}>
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>My Recent Tickets</p>
-              <button
-                onClick={() => setShowNewModal(true)}
-                style={{ fontSize: 13, fontWeight: 700, color: '#185FA5', background: '#EFF6FF', border: 'none', borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                + New Ticket
-              </button>
+          <div className="bg-white rounded-xl border border-slate-500 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <p className="text-base font-bold text-slate-900 m-0">My Recent Tickets</p>
             </div>
 
             {/* Desktop table */}
-            <div className="hidden sm:block" style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #F1F5F9' }}>
-                    {['ID', 'Issue', 'Priority', 'Status', 'Last Updated', ''].map(h => (
-                      <th key={h} style={{ textAlign: 'left', padding: '13px 22px', fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</th>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    {['ID', 'Issue', 'Priority', 'Status', 'Time'].map(h => (
+                      <th key={h} className="text-left px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {myTickets.map(ticket => (
-                    <tr key={ticket.id} style={{ borderBottom: '1px solid #F8FAFC', cursor: 'pointer' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFC')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                      onClick={() => setSelectedTicket(ticket)}>
-                      <td style={{ padding: '15px 22px', fontSize: 13, fontWeight: 700, color: '#185FA5' }}>{ticket.id}</td>
-                      <td style={{ padding: '15px 22px', fontSize: 14, fontWeight: 600, color: '#0F172A', maxWidth: 280 }}>
-                        <p style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ticket.title}</p>
-                        <p style={{ margin: '2px 0 0', fontSize: 12, color: '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ticket.description}</p>
-                      </td>
-                      <td style={{ padding: '15px 22px' }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: priorityStyle[ticket.priority].bg, color: priorityStyle[ticket.priority].color }}>
-                          {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
-                        </span>
-                      </td>
-                      <td style={{ padding: '15px 22px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: statusStyle[ticket.status].dot, flexShrink: 0 }} />
-                          <span style={{ fontSize: 13, fontWeight: 600, color: statusStyle[ticket.status].color }}>
-                            {statusLabel[ticket.status]}
-                          </span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '15px 22px', fontSize: 12, color: '#94A3B8' }}>{ticket.updated}</td>
-                      <td style={{ padding: '15px 22px' }}>
-                        <button
-                          onClick={e => { e.stopPropagation(); setSelectedTicket(ticket) }}
-                          style={{ fontSize: 12, fontWeight: 600, color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-                          View →
-                        </button>
-                      </td>
+                  {userTicketList.map(ticket => (
+                    <tr key={ticket.id} className="cursor-pointer border-b border-slate-100">
+                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.id}</td>
+                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.title}</td>
+                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.priority}</td>
+                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.status}</td>
+                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.created_at.replace("T", " ").split(".")[0]}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -304,22 +262,22 @@ export default function Dashboard() {
             <div className="sm:hidden">
               {myTickets.map(ticket => (
                 <div key={ticket.id}
-                  style={{ padding: '16px 20px', borderBottom: '1px solid #F8FAFC', cursor: 'pointer' }}
+                  className="px-5 py-4 border-b border-slate-50 cursor-pointer"
                   onClick={() => setSelectedTicket(ticket)}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#185FA5' }}>{ticket.id}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: statusStyle[ticket.status].dot }} />
-                      <span style={{ fontSize: 12, fontWeight: 600, color: statusStyle[ticket.status].color }}>
+                  <div className="flex justify-between mb-1.5">
+                    <span className="text-sm font-bold text-blue-700">{ticket.id}</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-2 h-2 rounded-full ${statusStyle[ticket.status].dot}`} />
+                      <span className={`text-xs font-semibold ${statusStyle[ticket.status].color}`}>
                         {statusLabel[ticket.status]}
                       </span>
                     </div>
                   </div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: '0 0 4px' }}>{ticket.title}</p>
-                  <p style={{ fontSize: 12, color: '#94A3B8', margin: '0 0 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ticket.description}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12, color: '#94A3B8' }}>Updated {ticket.updated}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: priorityStyle[ticket.priority].bg, color: priorityStyle[ticket.priority].color }}>
+                  <p className="text-sm font-semibold text-slate-900 m-0 mb-1">{ticket.title}</p>
+                  <p className="text-xs text-slate-400 m-0 mb-2 overflow-hidden text-ellipsis whitespace-nowrap">{ticket.description}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-slate-400">Updated {ticket.updated}</span>
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${priorityStyle[ticket.priority].bg} ${priorityStyle[ticket.priority].color}`}>
                       {ticket.priority}
                     </span>
                   </div>
@@ -332,55 +290,55 @@ export default function Dashboard() {
 
       {/* ── Ticket Detail Modal ── */}
       {selectedTicket && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-6"
           onClick={() => setSelectedTicket(null)}>
-          <div style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 520, padding: '28px 32px', boxSizing: 'border-box' }}
+          <div className="bg-white rounded-2xl w-full max-w-lg px-8 py-7 box-border"
             onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div className="flex items-start justify-between mb-5">
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#185FA5', margin: '0 0 4px' }}>{selectedTicket.id}</p>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: 0 }}>{selectedTicket.title}</h2>
+                <p className="text-sm font-bold text-blue-700 m-0 mb-1">{selectedTicket.id}</p>
+                <h2 className="text-lg font-bold text-slate-900 m-0">{selectedTicket.title}</h2>
               </div>
               <button onClick={() => setSelectedTicket(null)}
-                style={{ background: '#F1F5F9', border: 'none', borderRadius: 8, width: 32, height: 32, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                className="bg-slate-100 border-none rounded-lg w-8 h-8 text-base cursor-pointer flex items-center justify-center shrink-0">
                 ✕
               </button>
             </div>
 
             {/* Status banner */}
-            <div style={{ background: statusStyle[selectedTicket.status].bg, borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: statusStyle[selectedTicket.status].dot }} />
-              <span style={{ fontSize: 14, fontWeight: 700, color: statusStyle[selectedTicket.status].color }}>
+            <div className={`${statusStyle[selectedTicket.status].bg} rounded-xl px-4 py-3 mb-5 flex items-center gap-2`}>
+              <div className={`w-2.5 h-2.5 rounded-full ${statusStyle[selectedTicket.status].dot}`} />
+              <span className={`text-sm font-bold ${statusStyle[selectedTicket.status].color}`}>
                 {statusLabel[selectedTicket.status]}
               </span>
             </div>
 
             {/* Details */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 22 }}>
+            <div className="flex flex-col gap-3.5 mb-5">
               <div>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 5px' }}>Description</p>
-                <p style={{ fontSize: 14, color: '#374151', margin: 0, lineHeight: 1.6 }}>{selectedTicket.description}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide m-0 mb-1.5">Description</p>
+                <p className="text-sm text-gray-700 m-0 leading-relaxed">{selectedTicket.description}</p>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 5px' }}>Priority</p>
-                  <span style={{ fontSize: 13, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: priorityStyle[selectedTicket.priority].bg, color: priorityStyle[selectedTicket.priority].color }}>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide m-0 mb-1.5">Priority</p>
+                  <span className={`text-sm font-bold px-3 py-1 rounded-full ${priorityStyle[selectedTicket.priority].bg} ${priorityStyle[selectedTicket.priority].color}`}>
                     {selectedTicket.priority.charAt(0).toUpperCase() + selectedTicket.priority.slice(1)}
                   </span>
                 </div>
                 <div>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 5px' }}>Date Created</p>
-                  <p style={{ fontSize: 13, color: '#374151', margin: 0, fontWeight: 500 }}>{selectedTicket.created}</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide m-0 mb-1.5">Date Created</p>
+                  <p className="text-sm text-gray-700 m-0 font-medium">{selectedTicket.created}</p>
                 </div>
                 <div>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 5px' }}>Last Updated</p>
-                  <p style={{ fontSize: 13, color: '#374151', margin: 0, fontWeight: 500 }}>{selectedTicket.updated}</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide m-0 mb-1.5">Last Updated</p>
+                  <p className="text-sm text-gray-700 m-0 font-medium">{selectedTicket.updated}</p>
                 </div>
               </div>
             </div>
 
             <button onClick={() => setSelectedTicket(null)}
-              style={{ width: '100%', height: 44, background: '#F1F5F9', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#64748B', cursor: 'pointer', fontFamily: 'inherit' }}>
+              className="w-full h-11 bg-slate-100 border-none rounded-xl text-sm font-semibold text-slate-500 cursor-pointer font-sans">
               Close
             </button>
           </div>
@@ -389,59 +347,55 @@ export default function Dashboard() {
 
       {/* ── New Ticket Modal ── */}
       {showNewModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-6"
           onClick={() => setShowNewModal(false)}>
-          <div style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 480, padding: '28px 32px', boxSizing: 'border-box' }}
+          <div className="bg-white rounded-2xl w-full max-w-md px-8 py-7 box-border"
             onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: 0 }}>Submit New Ticket</h2>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold text-slate-900 m-0">Submit New Ticket</h2>
               <button onClick={() => setShowNewModal(false)}
-                style={{ background: '#F1F5F9', border: 'none', borderRadius: 8, width: 32, height: 32, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                className="bg-slate-100 border-none rounded-lg w-8 h-8 text-base cursor-pointer flex items-center justify-center">
                 ✕
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Form Fields */}
+            <div className="flex flex-col gap-4">
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 7 }}>Issue Title</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Issue Title</label>
                 <input
                   type="text"
                   placeholder="e.g. Cannot connect to Wi-Fi"
                   value={newTicket.title}
                   onChange={e => setNewTicket({ ...newTicket, title: e.target.value })}
-                  style={{ width: '100%', height: 44, padding: '0 14px', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 14, color: '#0F172A', background: '#F8FAFC', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
-                  onFocus={e => e.target.style.borderColor = '#185FA5'}
-                  onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                  className="w-full h-11 px-4 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 outline-none font-sans box-border focus:border-blue-700"
                 />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 7 }}>Description</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Description</label>
                 <textarea
                   placeholder="Describe the issue in detail..."
                   value={newTicket.description}
                   onChange={e => setNewTicket({ ...newTicket, description: e.target.value })}
                   rows={4}
-                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 14, color: '#0F172A', background: '#F8FAFC', outline: 'none', fontFamily: 'inherit', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }}
-                  onFocus={e => e.target.style.borderColor = '#185FA5'}
-                  onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 outline-none font-sans resize-none box-border leading-relaxed focus:border-blue-700"
                 />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 7 }}>Priority</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Priority</label>
+                <div className="grid grid-cols-3 gap-2">
                   {[
-                    { value: 'Low', label: 'Low', bg: '#F3F4F6', color: '#6B7280', activeBg: '#F3F4F6', activeColor: '#374151' },
-                    { value: 'Medium', label: 'Medium', bg: '#FFEDD5', color: '#EA580C', activeBg: '#FFEDD5', activeColor: '#EA580C' },
-                    { value: 'High', label: 'Critical', bg: '#FEE2E2', color: '#DC2626', activeBg: '#FEE2E2', activeColor: '#DC2626' },
+                    { value: 'Low', label: 'Low', bg: 'bg-gray-100', color: 'text-gray-500', border: 'border-gray-500' },
+                    { value: 'Medium', label: 'Medium', bg: 'bg-orange-100', color: 'text-orange-600', border: 'border-orange-600' },
+                    { value: 'High', label: 'Critical', bg: 'bg-red-100', color: 'text-red-600', border: 'border-red-600' },
                   ].map(p => (
                     <button key={p.value}
                       onClick={() => setNewTicket({ ...newTicket, priority: p.value })}
-                      style={{
-                        padding: '10px', borderRadius: 10, border: newTicket.priority === p.value ? `2px solid ${p.color}` : '1.5px solid #E2E8F0',
-                        background: newTicket.priority === p.value ? p.bg : '#fff',
-                        color: newTicket.priority === p.value ? p.color : '#94A3B8',
-                        fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s'
-                      }}>
+                      className={`p-2.5 rounded-xl text-sm font-bold cursor-pointer font-sans transition-all duration-150 ${
+                        newTicket.priority === p.value
+                          ? `border-2 ${p.border} ${p.bg} ${p.color}`
+                          : 'border border-slate-200 bg-white text-slate-400'
+                      }`}>
                       {p.label}
                     </button>
                   ))}
@@ -449,22 +403,21 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+            <div className="flex gap-2.5 mt-6">
               <button onClick={() => setShowNewModal(false)}
-                style={{ flex: 1, height: 44, background: '#F1F5F9', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#64748B', cursor: 'pointer', fontFamily: 'inherit' }}>
+                className="flex-1 h-11 bg-slate-100 border-none rounded-xl text-sm font-semibold text-slate-500 cursor-pointer font-sans">
                 Cancel
               </button>
               <button
                 onClick={CreateTicket}
                 disabled={isLoading}
-                style={{ flex: 2, height: 44, background: '#185FA5', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
+                className="flex-[2] h-11 bg-blue-700 border-none rounded-xl text-sm font-bold text-white cursor-pointer font-sans">
                 {isLoading ? 'Submitting...' : 'Submit Ticket →'}
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   )
 }
