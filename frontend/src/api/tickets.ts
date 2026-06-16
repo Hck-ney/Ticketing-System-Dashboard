@@ -19,7 +19,14 @@ export const createTicket = async (data: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
-  return res.json()
+
+  const result = await res.json()
+
+  if (!res.ok) {
+    throw new Error(result.error || 'Request failed')
+  }
+
+  return result
 }
 
 // fetch all tickets (for employees)

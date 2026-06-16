@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { Spinner } from "@/components/ui/spinner"
 import {
   Table,
   TableBody,
@@ -43,6 +44,7 @@ export default function Employee_Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [stats, setStats] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [isDataLoading, setIsDataLoading] = useState(true)
   const [ticketList, setTicketList] = useState<UserTicket[]>([])
   const [darkThemeToggle, setDarkThemeToggle] = useState(false)
   const darkThemeStyle = {
@@ -74,18 +76,23 @@ export default function Employee_Dashboard() {
     navigate('/login')
   }
 
+  const log = () => {
+    console.log(isDataLoading)
+  }
+
   useEffect(() => {
     loading
     const fetchData = async () => {
       try {
+        setIsDataLoading(true)
         const statsData = await allTickets()
+        setIsDataLoading(false)
         setTicketList(statsData.tickets)
-        console.log('Fetched stats:', statsData)
+        console.log(isDataLoading)
       } catch (error) {
         console.error('Error fetching stats:', error)
         setStats([])
       } finally {
-        setLoading(false)
       }
     }
 
@@ -93,7 +100,8 @@ export default function Employee_Dashboard() {
   }, [])
 
 
-  return (
+  const employeeDashboard = (
+
     <div className='h-screen flex font-sans bg-slate-50 overflow-hidden'>
 
       {/* Sidebar overlay on mobile */}
@@ -161,10 +169,10 @@ export default function Employee_Dashboard() {
       </aside>
 
       {/* Main content */}
-      <div className={`flex-1 flex flex-col min-w-0`}>
+      <div className={`flex-1 flex flex-col min-w-0 min-h-0`}>
 
         {/* Top bar */}
-        <header className={`px-4 lg:px-8 py-4 flex items-center justify-between  ${darkThemeToggle ? `${darkThemeStyle.background} ${darkThemeStyle.text}` : `border-b border-slate-300 ${lightThemeStyle.background} ${lightThemeStyle.text}`}`}>
+        <header className={`px-4 lg:px-8 py-4 flex items-center justify-between  ${darkThemeToggle ? `border-b ${darkThemeStyle.background} ${darkThemeStyle.text}` : `border-b border-slate-300 ${lightThemeStyle.background} ${lightThemeStyle.text}`}`}>
           <div className="flex items-center gap-4">
             {/* Mobile menu button */}
             <button
@@ -193,42 +201,54 @@ export default function Employee_Dashboard() {
           </div>
         </header>
 
+        {/* Main body */}
+        <div className={`flex-1 flex flex-col min-h-0 ${darkThemeToggle? 'bg-gray-900':''}`}>
 
-        <div className={`px-8 py-4 ${darkThemeToggle ? 'bg-gray-800' : `bg-slate-50`}`}>
-          <div className="flex-1 overflow-y-auto bg-white rounded-xl border border-slate-500 ">
-            <div className={`${darkThemeToggle ? 'bg-gray-800' : 'bg-white border-slate-100'} flex items-center justify-between px-6 py-4 border-b `}>
-              <p className={`${darkThemeToggle ? 'text-white' : 'text-slate-900'} text-base font-bold m-0`}>Active Tickets</p>
+          <div className="mx-8 my-12 flex-1 flex flex-col rounded-xl border border-slate-500 overflow-auto">
+            <div className={`${darkThemeToggle ? 'bg-gray-800' : 'bg-white'} flex items-center justify-between px-6 py-4 border-b`}>
+              <p className={`${darkThemeToggle ? 'text-white' : 'text-slate-900'} text-base font-bold m-0`}>
+                Active Tickets
+              </p>
             </div>
-            <Table className={`w-full overflow-hidden ${darkThemeToggle ? 'bg-gray-900' : 'bg-white'}`}>
-              <TableHeader className={`border-b border-slate-100 ${darkThemeToggle ? 'bg-gray-800' : 'bg-slate-50'}`}>
-                <TableRow className="text-left px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wide">
-                  <TableHead className={`w-[100px] ${darkThemeToggle ? 'text-white' : 'text-black'}`}>ID</TableHead>
-                  <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Title</TableHead>
-                  <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Submitted By</TableHead>
-                  <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Priority</TableHead>
-                  <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Status</TableHead>
-                  <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Time</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ticketList.map((ticket) => (
-                  <TableRow
-                    key={ticket.id}
-                    onClick={() => { setSelectedTicket(ticket); console.log(ticket); }}
-                    className={`${darkThemeToggle ? `cursor-pointer hover:bg-muted  dark:text-gray-200` : `text-black border-b border-slate-300`}`}
-                  >
-                    <TableCell className="font-medium">{ticket.id}</TableCell>
-                    <TableCell>{ticket.title}</TableCell>
-                    <TableCell>{ticket.users.name}</TableCell>
-                    <TableCell>{ticket.priority}</TableCell>
-                    <TableCell>{ticket.status}</TableCell>
-                    <TableCell>
-                      {ticket.created_at.replace("T", " ").split(".")[0]}
-                    </TableCell>
+
+            {isDataLoading ? (
+              <div className="flex-1 flex items-center justify-center">
+                <Spinner className={`size-12 ${darkThemeToggle? 'text-white' : 'text-black'}`} /> 
+                <span  className={`${darkThemeToggle? 'text-white' : 'text-black'}`}>Fetching all Active Tickets</span>
+                
+              </div>
+            ) : (
+              <Table className={`flex-1 overflow-auto w-full ${darkThemeToggle ? 'bg-gray-900' : 'bg-white'}`}>
+                <TableHeader className={`border-b border-slate-100 ${darkThemeToggle ? 'bg-gray-800' : 'bg-slate-50'}`}>
+                  <TableRow className="text-left px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wide">
+                    <TableHead className={`w-[100px] ${darkThemeToggle ? 'text-white' : 'text-black'}`}>ID</TableHead>
+                    <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Title</TableHead>
+                    <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Submitted By</TableHead>
+                    <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Priority</TableHead>
+                    <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Status</TableHead>
+                    <TableHead className={`${darkThemeToggle ? 'text-white' : 'text-black'}`}>Time</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody className='h-100'>
+                  {ticketList.map((ticket) => (
+                    <TableRow
+                      key={ticket.id}
+                      onClick={() => { setSelectedTicket(ticket); console.log(ticket); }}
+                      className={`${darkThemeToggle ? `cursor-pointer hover:bg-muted  dark:text-gray-200` : `text-black border-b border-slate-300`}`}
+                    >
+                      <TableCell className="font-medium">{ticket.id}</TableCell>
+                      <TableCell>{ticket.title}</TableCell>
+                      <TableCell>{ticket.users.name}</TableCell>
+                      <TableCell>{ticket.priority}</TableCell>
+                      <TableCell>{ticket.status}</TableCell>
+                      <TableCell>
+                        {ticket.created_at.replace("T", " ").split(".")[0]}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </div>
       </div>
@@ -248,22 +268,22 @@ export default function Employee_Dashboard() {
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-black'}`}>Submitted By</Label>
-              <Input className={`${darkThemeToggle? 'text-gray-100 bg-gray-800':'bg-gray-800'}`}  value={selectedTicket?.users.name ?? ''} readOnly />
+              <Input className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : 'bg-gray-800'}`} value={selectedTicket?.users.name ?? ''} readOnly />
             </div>
             <div className="grid gap-2">
               <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-black'}`}>Priority</Label>
-              <Input value={selectedTicket?.priority ?? ''} readOnly className={`${darkThemeToggle? 'text-gray-100 bg-gray-800':''}`} />
+              <Input value={selectedTicket?.priority ?? ''} readOnly className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : ''}`} />
             </div>
             <div className="grid gap-2">
               <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-black'}`}>Created</Label>
-              <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly className={`${darkThemeToggle? 'text-gray-100 bg-gray-800':''}`} />
+              <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : ''}`} />
             </div>
             <div className="grid gap-2">
               <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-gray-700'}`}>Description</Label>
               <Textarea
                 value={selectedTicket?.description ?? ''}
                 readOnly
-                className={`${darkThemeToggle? 'text-gray-100 bg-gray-800':''}`}
+                className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : ''}`}
               />
             </div>
           </div>
@@ -277,4 +297,5 @@ export default function Employee_Dashboard() {
       </Dialog>
     </div>
   )
+  return employeeDashboard
 }

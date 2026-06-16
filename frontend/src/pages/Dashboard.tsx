@@ -47,7 +47,6 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false)
   const [userTicketList, setUserTicketList] = useState<UserTicket[]>([])
   const handleLogout = () => { logout(); navigate('/login') }
-
   const CreateTicket = async () => {
     if (!newTicket.title || !newTicket.description || !newTicket.priority) {
       alert('Please fill in all fields and select a priority level.');
@@ -56,12 +55,11 @@ export default function Dashboard() {
     setIsLoading(true);
     try {
       await createTicket(newTicket)
-      setShowNewModal(false);
-      toast.success('Ticket submitted successfully!');
+      setShowNewModal(false)
+      toast.success('Ticket submitted successfully!')
     }
     catch (error) {
       console.error('Error creating ticket:', error);
-      setShowNewModal(false);
       toast.error('Error submitting ticket')
     }
     finally {
@@ -132,11 +130,10 @@ export default function Dashboard() {
                 if (item.id === 'new') { setShowNewModal(true); setSidebarOpen(false) }
                 else { setActive(item.id); setSidebarOpen(false) }
               }}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-none cursor-pointer w-full text-left text-sm font-sans transition-all duration-150 ${active === item.id ? 'font-semibold' : 'font-normal'} ${
-                item.id === 'new' || active === item.id
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'bg-transparent text-slate-500'
-              }`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-none cursor-pointer w-full text-left text-sm font-sans transition-all duration-150 ${active === item.id ? 'font-semibold' : 'font-normal'} ${item.id === 'new' || active === item.id
+                ? 'bg-blue-50 text-blue-700'
+                : 'bg-transparent text-slate-500'
+                }`}
             >
               <span className="text-lg">{item.icon}</span>
               {item.label}
@@ -387,15 +384,14 @@ export default function Dashboard() {
                   {[
                     { value: 'Low', label: 'Low', bg: 'bg-gray-100', color: 'text-gray-500', border: 'border-gray-500' },
                     { value: 'Medium', label: 'Medium', bg: 'bg-orange-100', color: 'text-orange-600', border: 'border-orange-600' },
-                    { value: 'High', label: 'Critical', bg: 'bg-red-100', color: 'text-red-600', border: 'border-red-600' },
+                    { value: 'Critical', label: 'Critical', bg: 'bg-red-100', color: 'text-red-600', border: 'border-red-600' },
                   ].map(p => (
                     <button key={p.value}
                       onClick={() => setNewTicket({ ...newTicket, priority: p.value })}
-                      className={`p-2.5 rounded-xl text-sm font-bold cursor-pointer font-sans transition-all duration-150 ${
-                        newTicket.priority === p.value
-                          ? `border-2 ${p.border} ${p.bg} ${p.color}`
-                          : 'border border-slate-200 bg-white text-slate-400'
-                      }`}>
+                      className={`p-2.5 rounded-xl text-sm font-bold cursor-pointer font-sans transition-all duration-150 ${newTicket.priority === p.value
+                        ? `border-2 ${p.border} ${p.bg} ${p.color}`
+                        : 'border border-slate-200 bg-white text-slate-400'
+                        }`}>
                       {p.label}
                     </button>
                   ))}
