@@ -79,10 +79,7 @@ export default function Employee_Dashboard() {
   const log = () => {
     console.log(isDataLoading)
   }
-
-  useEffect(() => {
-    loading
-    const fetchData = async () => {
+  const fetchData = async () => {
       try {
         setIsDataLoading(true)
         const statsData = await allTickets()
@@ -96,6 +93,7 @@ export default function Employee_Dashboard() {
       }
     }
 
+  useEffect(() => {
     fetchData()
   }, [])
 
@@ -209,6 +207,9 @@ export default function Employee_Dashboard() {
               <p className={`${darkThemeToggle ? 'text-white' : 'text-slate-900'} text-base font-bold m-0`}>
                 Active Tickets
               </p>
+              <Button onClick={fetchData} variant={darkThemeToggle? 'default': 'secondary'}>
+                Refresh
+              </Button>
             </div>
 
             {isDataLoading ? (
