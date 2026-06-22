@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { createTicket, userTickets } from '../api/tickets'
 import { toast } from 'sonner'
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 
 const myTickets = [
   { id: '#1042', title: 'Cannot connect to Wi-Fi', status: 'pending', priority: 'high', created: 'May 28, 2026', updated: '10 mins ago', description: 'Wi-Fi adapter is not detecting any networks since this morning.' },
@@ -45,6 +47,7 @@ export default function Dashboard() {
   const Ticket = { title: '', description: '', priority: '', status: 'Open', user_id: user?.id }
   const [newTicket, setNewTicket] = useState(Ticket)
   const [isLoading, setIsLoading] = useState(false)
+  const [isTicketListLoading, setIsTicketListLoading] = useState(true)
   const [userTicketList, setUserTicketList] = useState<UserTicket[]>([])
   const handleLogout = () => { logout(); navigate('/login') }
   const CreateTicket = async () => {
@@ -69,8 +72,10 @@ export default function Dashboard() {
 
   const fetchTickets = async () => {
     try {
+      setIsTicketListLoading(true)
       const data = await userTickets(user?.id || 0)
       setUserTicketList(data.tickets)
+      setIsTicketListLoading(false)
     }
     catch (error) {
       console.error('Error fetching user tickets:', error);
@@ -99,6 +104,7 @@ export default function Dashboard() {
   }, [])
 
   return (
+
     <div className="h-screen flex font-sans bg-slate-50 overflow-hidden">
 
       {/* Mobile overlay */}
@@ -229,31 +235,34 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl border border-slate-500 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <p className="text-base font-bold text-slate-900 m-0">My Recent Tickets</p>
+              <Button onClick={fetchTickets}>Refresh</Button>
             </div>
 
             {/* Desktop table */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
-                    {['ID', 'Issue', 'Priority', 'Status', 'Time'].map(h => (
-                      <th key={h} className="text-left px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wide">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {userTicketList.map(ticket => (
-                    <tr key={ticket.id} className="cursor-pointer border-b border-slate-100">
-                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.id}</td>
-                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.title}</td>
-                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.priority}</td>
-                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.status}</td>
-                      <td className="px-5 py-3 text-sm text-slate-900">{ticket.created_at.replace("T", " ").split(".")[0]}</td>
+            <div className="hidden sm:block overflow-x-auto h-120">
+              {isTicketListLoading ? (<div className='flex flex-1 h-full items-center justify-center gap-2'><Spinner className='size-10'/><span>Fetching your tickets</span></div>) : (
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100">
+                      {['ID', 'Issue', 'Priority', 'Status', 'Time'].map(h => (
+                        <th key={h} className="text-left px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wide">{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {userTicketList.map(ticket => (
+                      <tr key={ticket.id} className="cursor-pointer border-b border-slate-100">
+                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.id}</td>
+                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.title}</td>
+                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.priority}</td>
+                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.status}</td>
+                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.created_at.replace("T", " ").split(".")[0]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}</div>
+
 
             {/* Mobile cards */}
             <div className="sm:hidden">

@@ -16,7 +16,8 @@ const allTickets = async (req, res) => {
       name
     )
   `)
-      .neq('status', 'Closed')
+      .eq('status', 'Open')
+      .is('assigned_employee_id', null)
       .order('created_at', { ascending: false })
 
 
@@ -34,7 +35,7 @@ const allTickets = async (req, res) => {
   }
 }
 
-// Employee Update a Ticket Status
+// Employee Update Status of a Ticket
 const updateTicketStatus = async (req, res) => {
   try {
     const { id, status } = req.body
@@ -53,6 +54,44 @@ const updateTicketStatus = async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 }
+
+// Employee Assigns the ticket to himself
+const assignTicket = async (req, res) => {
+  try {
+    const { id, user_id } = req.body;
+
+    // 1. Fetch the current ticket to check the existing assignment
+    const { data: currentTicket, error: fetchError } = await supabase
+      .from('tickets')
+      .select('assigned_employee_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!currentTicket) return res.status(404).json({ error: 'Ticket not found' });
+
+    // 2. Check if the employee is already assigned
+    if (currentTicket.assigned_employee_id === user_id) {
+      return res.status(400).json({ 
+        error: 'Employee is already assigned to this ticket.'
+      });
+    }
+
+    // 3. Perform the update only if they are different
+    const { data: updatedTicket, error: updateError } = await supabase
+      .from('tickets')
+      .update({ assigned_employee_id: user_id })
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (updateError) throw updateError;
+
+    res.json(updatedTicket);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 // USER
 
@@ -74,7 +113,7 @@ const createTicket = async (req, res) => {
     if (userError || !userExists) {
       return res.status(400).json({ error: 'User not found' })
     }
-    
+
     const insertObj = {
       title,
       description,
@@ -110,6 +149,7 @@ const getUserTickets = async (req, res) => {
       .from('tickets')
       .select('*')
       .eq('user_id', user_id)
+      .order('created_at', { ascending: false })
 
     if (error) throw error
     if (!data || data.length === 0) {
@@ -121,4 +161,4 @@ const getUserTickets = async (req, res) => {
   }
 }
 
-module.exports = { allTickets, updateTicketStatus, createTicket, getUserTickets }
+module.exports = { allTickets, updateTicketStatus, createTicket, getUserTickets, assignTicket }

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { allTickets } from '../api/tickets'
+import { allTickets, assignTicket } from '../api/tickets'
 import { useTheme } from '../context/ThemeContext';
+import { toast } from 'sonner'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -64,16 +65,12 @@ export default function Employee_Dashboard() {
   const [ticketList, setTicketList] = useState<UserTicket[]>([])
   const [darkThemeToggle, setDarkThemeToggle] = useState(false)
   const { darkToggle, toggleTheme } = useTheme();
+  const [refresh, setRefresh] = useState(false);
 
   const darkThemeStyle = {
     background: 'bg-gray-900',
     grayText: 'text-gray-400',
     text: 'text-white'
-  }
-  const lightThemeStyle = {
-    background: 'bg-white',
-    text: 'text-black',
-    textSlate: 'text-slate-400'
   }
 
   type UserTicket = {
@@ -108,9 +105,28 @@ export default function Employee_Dashboard() {
     }
   }
 
+  const assign = async () => {
+    if (!selectedTicket || !user?.id) {
+      return
+    }
+    try {
+      const ticket = ({
+        id: selectedTicket.id,
+        user_id: user?.id
+      })
+      await assignTicket(ticket)
+      toast.success('Ticket assigned to you')
+      setSelectedTicket(null)
+      setRefresh(prev => !prev); 
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [refresh])
 
 
   const employeeDashboard = (
@@ -254,7 +270,7 @@ export default function Employee_Dashboard() {
                   {ticketList.map((ticket) => (
                     <TableRow
                       key={ticket.id}
-                      onClick={() => { setSelectedTicket(ticket); console.log(ticket); }}
+                      onClick={() => { setSelectedTicket(ticket) }}
                       className='cursor-pointer hover:bg-muted dark:text-gray-200 text-black'
                     >
                       <TableCell className="font-medium">{ticket.id}</TableCell>
@@ -289,7 +305,7 @@ export default function Employee_Dashboard() {
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-black'}`}>Submitted By</Label>
-              <Input className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : 'bg-gray-800'}`} value={selectedTicket?.users.name ?? ''} readOnly />
+              <Input className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : ''}`} value={selectedTicket?.users.name ?? ''} readOnly />
             </div>
             <div className="grid gap-2">
               <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-black'}`}>Priority</Label>
@@ -310,7 +326,8 @@ export default function Employee_Dashboard() {
           </div>
 
           <DialogFooter className="flex justify-between">
-            <Button type="button" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button type="button" className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={assign}>
               Assign to Me
             </Button>
           </DialogFooter>
