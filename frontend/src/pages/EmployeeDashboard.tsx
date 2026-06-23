@@ -3,23 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { allTickets, assignTicket } from '../api/tickets'
 import { useTheme } from '../context/ThemeContext';
-import { toast } from 'sonner'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
 import Dashboard from './employee/dashboard';
 import Ticket from './employee/tickets'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
-
 import {
   Avatar,
   AvatarFallback,
@@ -61,7 +47,7 @@ type UserTicket = {
 }
 
 export default function Employee_Dashboard() {
-  const { user, logout } = useAuth()
+  const { logout } = useAuth()
   const navigate = useNavigate()
   const [active, setActive] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -99,26 +85,6 @@ export default function Employee_Dashboard() {
     } finally {
     }
   }
-
-  const assign = async () => {
-    if (!selectedTicket || !user?.id) {
-      return
-    }
-    try {
-      const ticket = ({
-        id: selectedTicket.id,
-        user_id: user?.id
-      })
-      await assignTicket(ticket)
-      toast.success('Ticket assigned to you')
-      setSelectedTicket(null)
-      setRefresh(prev => !prev);
-    }
-    catch (error) {
-      console.log(error)
-    }
-  }
-
   useEffect(() => {
     fetchData()
   }, [refresh])
@@ -229,103 +195,9 @@ export default function Employee_Dashboard() {
 
         {/* Main body */}
         {selectedPage===('dashboard')? <Dashboard/>:<Ticket/>}
-        {/* <div className='flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800'>
-
-          <div className='mx-8 my-12 flex-1 flex flex-col rounded-xl border border-slate-500 overflow-auto'>
-            <div className='flex items-center justify-between px-6 py-4 border-b bg-white dark:bg-gray-900'>
-              <p className='dark:text-white text-slate-900 text-base font-bold m-0'>
-                Active Tickets
-              </p>
-              <Button onClick={fetchData}>
-                Refresh
-              </Button>
-            </div>
-
-            {isDataLoading ? (
-              <div className="flex-1 flex items-center justify-center">
-                <Spinner className='size-12 text-black dark:text-white' />
-                <span className='text-black dark:text-white'>Fetching all Active Tickets</span>
-
-              </div>
-            ) : (
-              <Table className='flex-1 overflow-auto w-full bg-white dark:bg-gray-900'>
-                <TableHeader>
-                  <TableRow className="text-left px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wide">
-                    <TableHead className='w-[100px] text-black dark:text-white'>ID</TableHead>
-                    <TableHead className='text-black dark:text-white'>Title</TableHead>
-                    <TableHead className='text-black dark:text-white'>Submitted By</TableHead>
-                    <TableHead className='text-black dark:text-white'>Priority</TableHead>
-                    <TableHead className='text-black dark:text-white'>Status</TableHead>
-                    <TableHead className='text-black dark:text-white'>Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className='h-100'>
-                  {ticketList.map((ticket) => (
-                    <TableRow
-                      key={ticket.id}
-                      onClick={() => { setSelectedTicket(ticket) }}
-                      className='cursor-pointer hover:bg-muted dark:text-gray-200 text-black'
-                    >
-                      <TableCell className="font-medium">{ticket.id}</TableCell>
-                      <TableCell>{ticket.title}</TableCell>
-                      <TableCell>{ticket.users.name}</TableCell>
-                      <TableCell>{ticket.priority}</TableCell>
-                      <TableCell>{ticket.status}</TableCell>
-                      <TableCell>
-                        {ticket.created_at.replace("T", " ").split(".")[0]}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </div>
-        </div> */}
       </div>
 
-      {/* Dialog modal */}
-      <Dialog
-        open={!!selectedTicket}
-        onOpenChange={(open) => { if (!open) setSelectedTicket(null) }}
-        disablePointerDismissal
-      >
-        <DialogContent className={`sm:max-w-md ${darkThemeToggle ? 'bg-gray-900 text-gray-100' : 'bg-gray-100 text-black'}`} >
-          <DialogHeader>
-            <DialogTitle>{selectedTicket?.title}</DialogTitle>
-            <DialogDescription className={`${darkThemeToggle ? 'text-gray-400' : 'text-gray-700'}`}>Ticket #{selectedTicket?.id}</DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-black'}`}>Submitted By</Label>
-              <Input className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : ''}`} value={selectedTicket?.users.name ?? ''} readOnly />
-            </div>
-            <div className="grid gap-2">
-              <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-black'}`}>Priority</Label>
-              <Input value={selectedTicket?.priority ?? ''} readOnly className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : ''}`} />
-            </div>
-            <div className="grid gap-2">
-              <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-black'}`}>Created</Label>
-              <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : ''}`} />
-            </div>
-            <div className="grid gap-2">
-              <Label className={`${darkThemeToggle ? 'text-gray-300' : 'text-gray-700'}`}>Description</Label>
-              <Textarea
-                value={selectedTicket?.description ?? ''}
-                readOnly
-                className={`${darkThemeToggle ? 'text-gray-100 bg-gray-800' : ''}`}
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="flex justify-between">
-            <Button type="button" className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={assign}>
-              Assign to Me
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      
     </div>
   )
   return employeeDashboard

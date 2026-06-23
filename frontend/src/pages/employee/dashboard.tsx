@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { allTickets } from '@/api/tickets'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { useAuth } from '@/context/AuthContext'
+import { assignTicket } from '@/api/tickets'
+import { toast } from 'sonner'
 import {
     Table,
     TableBody,
@@ -10,6 +16,15 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog"
+
 
 type UserTicket = {
     id: number
@@ -27,10 +42,11 @@ type UserTicket = {
 
 
 export default function Dashboard() {
-
+    const { user } = useAuth()
     const [ticketList, setTicketList] = useState<UserTicket[]>([])
     const [isDataLoading, setIsDataLoading] = useState(true)
     const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
+    const [refresh, setRefresh] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -44,9 +60,27 @@ export default function Dashboard() {
         } finally {
         }
     }
+    const assign = async () => {
+        if (!selectedTicket || !user?.id) {
+            return
+        }
+        try {
+            const ticket = ({
+                id: selectedTicket.id,
+                user_id: user?.id
+            })
+            await assignTicket(ticket)
+            toast.success('Ticket assigned to you')
+            setSelectedTicket(null)
+            setRefresh(prev => !prev);
+        }
+        catch (error) {
+            console.log(error)
+        }
+    }
     useEffect(() => {
         fetchData()
-    }, [])
+    }, [refresh])
 
     return (
         <div className='flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800'>
@@ -100,6 +134,50 @@ export default function Dashboard() {
                     </Table>
                 )}
             </div>
+            {/* Dialog modal */}
+            <Dialog
+                open={!!selectedTicket}
+                onOpenChange={(open) => { if (!open) setSelectedTicket(null) }}
+                disablePointerDismissal
+            >
+                <DialogContent className='sm:max-w-md bg-gray-100 text-black dark:bg-gray-900 dark: text-gray-100' >
+                    <DialogHeader>
+                        <DialogTitle>{selectedTicket?.title}</DialogTitle>
+                        <DialogDescription className='text-gray-700 dark:text-gray-400'>Ticket #{selectedTicket?.id}</DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label className='dark:text-gray-300 text-black'>Submitted By</Label>
+                            <Input className='dark:text-gray-100 dark:bg-gray-800' value={selectedTicket?.users.name ?? ''} readOnly />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label className='dark:text-gray-300 text-black'>Priority</Label>
+                            <Input value={selectedTicket?.priority ?? ''} readOnly className='dark:text-gray-100 dark:bg-gray-800' />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label className='dark:text-gray-300 text-black'>Created</Label>
+                            <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly className='dark:text-gray-100 dark:bg-gray-800' />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label className='dark:text-gray-300 text-gray-700'>Description</Label>
+                            <Textarea
+                                value={selectedTicket?.description ?? ''}
+                                readOnly
+                                className='dark:text-gray-100 dark:bg-gray-800'
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="flex justify-between">
+                        <Button type="button" className="bg-blue-600 hover:bg-blue-700 text-white"
+                            onClick={assign}
+                        >
+                            Assign to Me
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
