@@ -4,23 +4,13 @@ import { useAuth } from '../context/AuthContext'
 import { allTickets, assignTicket } from '../api/tickets'
 import { useTheme } from '../context/ThemeContext';
 import { toast } from 'sonner'
-import EmployeeTickets from "@/pages/EmployeeTickets"
-import Dashboard from './employee/dashboard';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { Spinner } from "@/components/ui/spinner"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-
+import Dashboard from './employee/dashboard';
+import Ticket from './employee/tickets'
 import {
   Dialog,
   DialogContent,
@@ -131,7 +121,7 @@ export default function Employee_Dashboard() {
 
   useEffect(() => {
     fetchData()
-  }, [refresh, selectedPage])
+  }, [refresh])
 
   const employeeDashboard = (
 
@@ -211,7 +201,6 @@ export default function Employee_Dashboard() {
             />
             🌙
             <DropdownMenu>
-              {/* Remove asChild. Pass className directly to the Trigger component */}
               <DropdownMenuTrigger
                 className="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
               >
@@ -239,7 +228,7 @@ export default function Employee_Dashboard() {
         </header>
 
         {/* Main body */}
-        {selectedPage===('dashboard')? <Dashboard/>:(<div>False</div>)}
+        {selectedPage===('dashboard')? <Dashboard/>:<Ticket/>}
         {/* <div className='flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800'>
 
           <div className='mx-8 my-12 flex-1 flex flex-col rounded-xl border border-slate-500 overflow-auto'>

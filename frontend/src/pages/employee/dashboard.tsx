@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { allTickets } from '@/api/tickets'
@@ -23,6 +23,9 @@ type UserTicket = {
         name: string
     }
 }
+
+
+
 export default function Dashboard() {
 
     const [ticketList, setTicketList] = useState<UserTicket[]>([])
@@ -30,16 +33,20 @@ export default function Dashboard() {
     const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
 
     const fetchData = async () => {
-    try {
-        setIsDataLoading(true)
-        const statsData = await allTickets()
-        setIsDataLoading(false)
-        setTicketList(statsData.tickets)
-    } catch (error) {
-        console.error('Error fetching stats:', error)
-    } finally {
+        try {
+            setIsDataLoading(true)
+            const statsData = await allTickets()
+            console.log('awaiting tickets')
+            setIsDataLoading(false)
+            setTicketList(statsData.tickets)
+        } catch (error) {
+            console.error('Error fetching stats:', error)
+        } finally {
+        }
     }
-}
+    useEffect(() => {
+        fetchData()
+    }, [])
 
     return (
         <div className='flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800'>
