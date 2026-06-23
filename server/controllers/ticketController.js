@@ -17,9 +17,7 @@ const allTickets = async (req, res) => {
     )
   `)
       .eq('status', 'Open')
-      .is('assigned_employee_id', null)
-      .order('created_at', { ascending: false })
-
+      .order('created_at')
 
     if (error) throw error
 
@@ -80,7 +78,7 @@ const assignTicket = async (req, res) => {
     // 3. Perform the update only if they are different
     const { data: updatedTicket, error: updateError } = await supabase
       .from('tickets')
-      .update({ assigned_employee_id: user_id })
+      .update({ assigned_employee_id: user_id, status: 'In-progress' })
       .eq('id', id)
       .select('*')
       .single();
