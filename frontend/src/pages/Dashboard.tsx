@@ -106,7 +106,6 @@ export default function Dashboard() {
   return (
 
     <div className="h-screen flex font-sans bg-slate-50 overflow-hidden">
-
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-20 bg-black/30 lg:hidden"

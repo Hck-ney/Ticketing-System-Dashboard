@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import { allTickets, assignTicket } from '../api/tickets'
 import { useTheme } from '../context/ThemeContext';
 import { toast } from 'sonner'
+import EmployeeTickets from "@/pages/EmployeeTickets"
+import Dashboard from './employee/dashboard';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -55,6 +57,19 @@ const navItems = [
   { icon: '⚙️', label: 'Settings', id: 'settings' },
 ]
 
+type UserTicket = {
+  id: number
+  title: string
+  description: string
+  status: string
+  priority: string
+  created_at: string
+  user_id: number
+  users: {
+    name: string
+  }
+}
+
 export default function Employee_Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -66,6 +81,7 @@ export default function Employee_Dashboard() {
   const [darkThemeToggle, setDarkThemeToggle] = useState(false)
   const { darkToggle, toggleTheme } = useTheme();
   const [refresh, setRefresh] = useState(false);
+  const [selectedPage, setSelectedPage] = useState('dashboard')
 
   const darkThemeStyle = {
     background: 'bg-gray-900',
@@ -73,19 +89,9 @@ export default function Employee_Dashboard() {
     text: 'text-white'
   }
 
-  type UserTicket = {
-    id: number
-    title: string
-    description: string
-    status: string
-    priority: string
-    created_at: string
-    user_id: number
-    users: {
-      name: string
-    }
-  }
+
   const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -97,7 +103,6 @@ export default function Employee_Dashboard() {
       const statsData = await allTickets()
       setIsDataLoading(false)
       setTicketList(statsData.tickets)
-      console.log(isDataLoading)
     } catch (error) {
       console.error('Error fetching stats:', error)
       setStats([])
@@ -117,7 +122,7 @@ export default function Employee_Dashboard() {
       await assignTicket(ticket)
       toast.success('Ticket assigned to you')
       setSelectedTicket(null)
-      setRefresh(prev => !prev); 
+      setRefresh(prev => !prev);
     }
     catch (error) {
       console.log(error)
@@ -126,13 +131,11 @@ export default function Employee_Dashboard() {
 
   useEffect(() => {
     fetchData()
-  }, [refresh])
-
+  }, [refresh, selectedPage])
 
   const employeeDashboard = (
 
     <div className='h-screen flex font-sans overflow-hidden'>
-
       {/* Sidebar overlay on mobile */}
       {sidebarOpen && (
         <div
@@ -164,7 +167,7 @@ export default function Employee_Dashboard() {
           {navItems.map(item => (
             <button
               key={item.id}
-              onClick={() => { setActive(item.id); setSidebarOpen(false) }}
+              onClick={() => { setActive(item.id); setSidebarOpen(false); setSelectedPage(item.id)}}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer ${active === item.id
                 ? `{font-medium ${darkThemeToggle ? 'text-blue-100 bg-blue-950' : 'bg-blue-200'}`
                 : `${darkThemeToggle ? `${darkThemeStyle.grayText} hover:text-gray-100` : ''}`
@@ -236,7 +239,8 @@ export default function Employee_Dashboard() {
         </header>
 
         {/* Main body */}
-        <div className='flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800'>
+        {selectedPage===('dashboard')? <Dashboard/>:(<div>False</div>)}
+        {/* <div className='flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800'>
 
           <div className='mx-8 my-12 flex-1 flex flex-col rounded-xl border border-slate-500 overflow-auto'>
             <div className='flex items-center justify-between px-6 py-4 border-b bg-white dark:bg-gray-900'>
@@ -287,7 +291,7 @@ export default function Employee_Dashboard() {
               </Table>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Dialog modal */}
