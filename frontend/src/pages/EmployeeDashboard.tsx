@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { allTickets, assignTicket } from '../api/tickets'
 import { useTheme } from '../context/ThemeContext';
 import { Switch } from "@/components/ui/switch"
 import Dashboard from './employee/dashboard';
@@ -33,61 +32,18 @@ const navItems = [
   { icon: '⚙️', label: 'Settings', id: 'settings' },
 ]
 
-type UserTicket = {
-  id: number
-  title: string
-  description: string
-  status: string
-  priority: string
-  created_at: string
-  user_id: number
-  users: {
-    name: string
-  }
-}
-
 export default function Employee_Dashboard() {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const [active, setActive] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [stats, setStats] = useState<any[]>([])
-  const [isDataLoading, setIsDataLoading] = useState(true)
-  const [ticketList, setTicketList] = useState<UserTicket[]>([])
-  const [darkThemeToggle, setDarkThemeToggle] = useState(false)
   const { darkToggle, toggleTheme } = useTheme();
-  const [refresh, setRefresh] = useState(false);
   const [selectedPage, setSelectedPage] = useState('dashboard')
-
-  const darkThemeStyle = {
-    background: 'bg-gray-900',
-    grayText: 'text-gray-400',
-    text: 'text-white'
-  }
-
-
-  const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
-
-  const fetchData = async () => {
-    try {
-      setIsDataLoading(true)
-      const statsData = await allTickets()
-      setIsDataLoading(false)
-      setTicketList(statsData.tickets)
-    } catch (error) {
-      console.error('Error fetching stats:', error)
-      setStats([])
-    } finally {
-    }
-  }
-  useEffect(() => {
-    fetchData()
-  }, [refresh])
 
   const employeeDashboard = (
 
@@ -125,8 +81,8 @@ export default function Employee_Dashboard() {
               key={item.id}
               onClick={() => { setActive(item.id); setSidebarOpen(false); setSelectedPage(item.id)}}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer ${active === item.id
-                ? `{font-medium ${darkThemeToggle ? 'text-blue-100 bg-blue-950' : 'bg-blue-200'}`
-                : `${darkThemeToggle ? `${darkThemeStyle.grayText} hover:text-gray-100` : ''}`
+                ? 'font-medium dark:text-blue-100 dark:bg-blue-700 bg-blue-600'
+                : 'dark:text-gray-300 hover:text-black text-gray-600 dark:hover:text-white'
                 }`}
             >
               <span>{item.icon}</span>
@@ -136,8 +92,7 @@ export default function Employee_Dashboard() {
         </nav>
 
         {/* User info */}
-        <div className={`px-3 py-3 border-t ${darkThemeToggle ? `border-t` : `border-t border-slate-300`} `}>
-
+        <div className='px-3 py-3 border-t dark:border-t border-t border-slate-300'>
         </div>
       </aside>
 
@@ -176,7 +131,7 @@ export default function Employee_Dashboard() {
                 </Avatar>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className={darkThemeToggle ? '' : 'text-black bg-white'}>
+              <DropdownMenuContent align="end" className='text-black bg-white'>
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
                     <BadgeCheckIcon />

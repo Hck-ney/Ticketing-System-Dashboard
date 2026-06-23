@@ -39,8 +39,6 @@ type UserTicket = {
     }
 }
 
-
-
 export default function Dashboard() {
     const { user } = useAuth()
     const [ticketList, setTicketList] = useState<UserTicket[]>([])
@@ -142,29 +140,29 @@ export default function Dashboard() {
             >
                 <DialogContent className='sm:max-w-md bg-gray-100 text-black dark:bg-gray-900 dark: text-gray-100' >
                     <DialogHeader>
-                        <DialogTitle>{selectedTicket?.title}</DialogTitle>
+                        <DialogTitle className='text-black dark:text-white'>{selectedTicket?.title}</DialogTitle>
                         <DialogDescription className='text-gray-700 dark:text-gray-400'>Ticket #{selectedTicket?.id}</DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label className='dark:text-gray-300 text-black'>Submitted By</Label>
-                            <Input className='dark:text-gray-100 dark:bg-gray-800' value={selectedTicket?.users.name ?? ''} readOnly />
+                            <Input className='dark:text-gray-100 dark:bg-gray-800 text-black' value={selectedTicket?.users.name ?? ''} readOnly />
                         </div>
                         <div className="grid gap-2">
                             <Label className='dark:text-gray-300 text-black'>Priority</Label>
-                            <Input value={selectedTicket?.priority ?? ''} readOnly className='dark:text-gray-100 dark:bg-gray-800' />
+                            <Input value={selectedTicket?.priority ?? ''} readOnly className='text-black dark:text-gray-100 dark:bg-gray-800' />
                         </div>
                         <div className="grid gap-2">
                             <Label className='dark:text-gray-300 text-black'>Created</Label>
-                            <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly className='dark:text-gray-100 dark:bg-gray-800' />
+                            <Input value={selectedTicket?.created_at.replace("T", " ").split(".")[0] ?? ''} readOnly className='text-black dark:text-gray-100 dark:bg-gray-800' />
                         </div>
                         <div className="grid gap-2">
                             <Label className='dark:text-gray-300 text-gray-700'>Description</Label>
                             <Textarea
                                 value={selectedTicket?.description ?? ''}
                                 readOnly
-                                className='dark:text-gray-100 dark:bg-gray-800'
+                                className='text-black dark:text-gray-100 dark:bg-gray-800'
                             />
                         </div>
                     </div>
