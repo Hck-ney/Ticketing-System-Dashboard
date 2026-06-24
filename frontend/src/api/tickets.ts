@@ -1,5 +1,7 @@
 import { API_URL } from '../config/config'
 
+// USER
+
 // fetch tickets for a specific user
 export const userTickets = async (user_id: number) => {
   const res = await fetch(`${API_URL}/tickets?user_id=${user_id}`)
@@ -29,6 +31,8 @@ export const createTicket = async (data: {
   return result
 }
 
+// EMPLOYEE
+
 // fetch all tickets (for employees)
 export const allTickets = async () => {
   const res = await fetch(`${API_URL}/allTickets`)
@@ -53,4 +57,10 @@ export const assignTicket = async (data: {
   }
 
   return result
+}
+
+// fetch tickets assigned for an employee
+export const myTickets = async (id:number) =>{
+  const res = await fetch(`${API_URL}/myTickets?id=${id}`)
+  return res.json()
 }

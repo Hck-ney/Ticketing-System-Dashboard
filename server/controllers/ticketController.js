@@ -33,6 +33,23 @@ const allTickets = async (req, res) => {
   }
 }
 
+// Employee GET tickets assigned to himself
+const myTickets = async (req, res) => {
+  try {
+    const { id } = req.query
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*')
+      .eq('assigned_employee_id', id)
+      .throwOnError()
+
+    res.json(data)
+  }
+  catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 // Employee Update Status of a Ticket
 const updateTicketStatus = async (req, res) => {
   try {
@@ -70,7 +87,7 @@ const assignTicket = async (req, res) => {
 
     // 2. Check if the employee is already assigned
     if (currentTicket.assigned_employee_id === user_id) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Employee is already assigned to this ticket.'
       });
     }
@@ -138,25 +155,22 @@ const createTicket = async (req, res) => {
 // Fetch tickets of User
 const getUserTickets = async (req, res) => {
   try {
-    const { user_id } = req.query
-
-    if (!user_id) {
-      return res.status(400).json({ error: 'User ID is required' })
-    }
-    const { data, error } = await supabase
+    const { id } = req.query
+    const { data } = await supabase
       .from('tickets')
       .select('*')
-      .eq('user_id', user_id)
+      .eq('user_id', id)
       .order('created_at', { ascending: false })
+      .throwOnError() // Automatically throws on error
 
-    if (error) throw error
     if (!data || data.length === 0) {
-      return res.status(404).json({ error: 'No tickets found for this user' })
+      return res.status(404).json({ error: 'No tickets found' })
     }
+
     res.json({ tickets: data })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
 }
 
-module.exports = { allTickets, updateTicketStatus, createTicket, getUserTickets, assignTicket }
+module.exports = { allTickets, updateTicketStatus, createTicket, getUserTickets, assignTicket, myTickets }
