@@ -60,7 +60,7 @@ const updateTicketStatus = async (req, res) => {
   try {
     const { id } = req.query
     const { status, comment } = req.body
-    const payload = {status: status}
+    const payload = { status: status }
     if (!id) {
       return res.status(400).json({ error: "Ticket ID is required." });
     }
@@ -69,9 +69,9 @@ const updateTicketStatus = async (req, res) => {
     }
     const allowedStatuses = ['Open', 'In-progress', 'Resolved', 'Closed', 'Cancelled'];
     if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({ error: "Status value isn't valid"});
+      return res.status(400).json({ error: "Status value isn't valid" });
     }
-    if(comment) {
+    if (comment) {
       payload.comment = comment;
     }
     const { data, error } = await supabase
@@ -191,4 +191,64 @@ const getUserTickets = async (req, res) => {
   }
 }
 
-module.exports = { allTickets, updateTicketStatus, createTicket, getUserTickets, assignTicket, myTickets }
+// Re-open a ticket
+const reopenTicket = async (req, res) => {
+  try {
+    const { id } = req.query
+    const { desc } = req.body
+
+    if (!id) {
+      return res.status(404).json('Ticket not found')
+    }
+    if (!desc) {
+      return res.status(400).json('Description is empty')
+    }
+
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('description')
+      .eq('id', id)
+      .single()
+      
+    if(error) {
+      throw new Error(error.message)
+    }
+     const newDescription = `${data.description}\n---\n\n${getTime()}\n${desc}`;
+
+     const payload = { description: `${newDescription}`, status: 'In-progress' }
+     const { data: ticket, error: err } = await supabase
+       .from('tickets')
+       .update(payload)
+       .eq('id', id)
+       .select('*')
+       .single()
+
+     if (err) throw err
+     res.status(200).json(ticket || null)
+    if(!ticket){
+      return res.status(404).json('No ticket found')
+    }
+    res.json(ticket)
+  } catch (e) {
+    return res.status(500).json({ error: e.message })
+  }
+}
+
+
+
+module.exports = { allTickets, updateTicketStatus, createTicket, getUserTickets, assignTicket, myTickets, reopenTicket }
+
+
+// get date and time today
+const getTime = () => {
+  const now = new Date();
+  
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = now.getFullYear();
+  
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  
+  return `[${day}/${month}/${year}] [${hours}:${minutes}]`;
+};
