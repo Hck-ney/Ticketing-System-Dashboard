@@ -64,3 +64,18 @@ export const myTickets = async (id:number) =>{
   const res = await fetch(`${API_URL}/myTickets?id=${id}`)
   return res.json()
 }
+
+// employee updates the status of a ticket
+export const updateTicket = async (id:number, data: { status:string, comment: string})=> {
+  const res = await fetch(`${API_URL}/updateTicketStatus?id=${id}`,{
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  })
+  const result = await res.json()
+
+  if (!res.ok) {
+    throw new Error(result.error || `Server Error: ${res.status}`);
+  }
+  return result
+}

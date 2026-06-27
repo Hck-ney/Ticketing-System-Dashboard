@@ -39,7 +39,12 @@ const myTickets = async (req, res) => {
     const { id } = req.query
     const { data, error } = await supabase
       .from('tickets')
-      .select('*')
+      .select(`
+    *,
+    users (
+      name
+    )
+  `)
       .eq('assigned_employee_id', id)
       .throwOnError()
 
@@ -53,18 +58,31 @@ const myTickets = async (req, res) => {
 // Employee Update Status of a Ticket
 const updateTicketStatus = async (req, res) => {
   try {
-    const { id, status } = req.body
-    // fetch only status column to reduce payload
+    const { id } = req.query
+    const { status, comment } = req.body
+    const payload = {status: status}
+    if (!id) {
+      return res.status(400).json({ error: "Ticket ID is required." });
+    }
+    if (!status) {
+      return res.status(400).json({ error: "Status is required." });
+    }
+    const allowedStatuses = ['Open', 'In-progress', 'Resolved', 'Closed', 'Cancelled'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ error: "Status value isn't valid"});
+    }
+    if(comment) {
+      payload.comment = comment;
+    }
     const { data, error } = await supabase
       .from('tickets')
-      .update({ status: status })
+      .update(payload)
       .eq('id', id)
       .select('*')
       .single()
 
     if (error) throw error
-
-    res.json(data || null)
+    res.status(200).json(data || null)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
