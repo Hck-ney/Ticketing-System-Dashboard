@@ -135,21 +135,27 @@ export default function ticket() {
 
                     <Sheet open={isOpen} onOpenChange={closeSheet}>
                         <SheetTrigger className='w-full'>
-                            {tickets.map((t) => (
-                                <div key={t.id} onClick={() => { setSelectedTicket(t) }} className="border pl-2 pt-2 pr-2 my-4 h-20 bg-white rounded-md w-full">
-                                    <div className="flex gap-4 mb-1.5">
-                                        <div className="p-1 text-xs">Ticket #{t.id}</div>
-                                        <div className={`border py-1 px-2 text-xs rounded-md ${statusStyles[t.status]}`}>
-                                            {t.status}
+                            {tickets
+                                .filter((t) => t.status === 'In-progress')
+                                .map((t) => (
+                                    <div
+                                        key={t.id}
+                                        onClick={() => setSelectedTicket(t)}
+                                        className="border pl-2 pt-2 pr-2 my-4 h-20 bg-white rounded-md w-full"
+                                    >
+                                        <div className="flex gap-4 mb-1.5">
+                                            <div className="p-1 text-xs">Ticket #{t.id}</div>
+                                            <div className={`border py-1 px-2 text-xs rounded-md ${statusStyles[t.status]}`}>
+                                                {t.status}
+                                            </div>
+                                            <div className={`py-1 px-2 text-xs rounded-md border ${priorityStyles[t.priority]}`}>
+                                                {t.priority}
+                                            </div>
+                                            <ChevronRight className="ml-auto" size={18} strokeWidth={1.5} />
                                         </div>
-                                        <div className={`py-1 px-2 text-xs rounded-md border ${priorityStyles[t.priority]}`}>
-                                            {t.priority}
-                                        </div>
-                                        <ChevronRight className="ml-auto" size={18} strokeWidth={1.5} />
+                                        <p className="text-left">{t.title}</p>
                                     </div>
-                                    <p className="text-left">{t.title}</p>
-                                </div>
-                            ))}
+                                ))}
                         </SheetTrigger>
                         <SheetContent>
                             <SheetHeader className="border">

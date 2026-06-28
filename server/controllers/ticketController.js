@@ -34,7 +34,7 @@ const allTickets = async (req, res) => {
 }
 
 // Employee GET tickets assigned to himself
-const myTickets = async (req, res) => {
+const myTickets = async (req, res) => { 
   try {
     const { id } = req.query
     const { data, error } = await supabase
@@ -179,8 +179,7 @@ const getUserTickets = async (req, res) => {
       .select('*')
       .eq('user_id', id)
       .order('created_at', { ascending: false })
-      .throwOnError() // Automatically throws on error
-
+      .throwOnError() 
     if (!data || data.length === 0) {
       return res.status(404).json({ error: 'No tickets found' })
     }

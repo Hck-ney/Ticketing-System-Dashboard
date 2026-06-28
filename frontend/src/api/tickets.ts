@@ -4,7 +4,7 @@ import { API_URL } from '../config/config'
 
 // fetch tickets for a specific user
 export const userTickets = async (user_id: number) => {
-  const res = await fetch(`${API_URL}/tickets?user_id=${user_id}`)
+  const res = await fetch(`${API_URL}/tickets?id=${user_id}`)
   return res.json()
 }
 

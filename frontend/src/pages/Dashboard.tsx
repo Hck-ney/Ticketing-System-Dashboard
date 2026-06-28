@@ -5,31 +5,7 @@ import { createTicket, userTickets } from '../api/tickets'
 import { toast } from 'sonner'
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-
-const myTickets = [
-  { id: '#1042', title: 'Cannot connect to Wi-Fi', status: 'pending', priority: 'high', created: 'May 28, 2026', updated: '10 mins ago', description: 'Wi-Fi adapter is not detecting any networks since this morning.' },
-  { id: '#1039', title: 'Printer offline', status: 'pending', priority: 'high', created: 'May 27, 2026', updated: '3 hrs ago', description: 'Office printer on 3rd floor shows offline in Windows settings.' },
-  { id: '#1035', title: 'Outlook not syncing', status: 'resolved', priority: 'medium', created: 'May 25, 2026', updated: 'May 26, 2026', description: 'Emails not syncing automatically, had to manually refresh.' },
-  { id: '#1031', title: 'VPN connection drops', status: 'in_progress', priority: 'medium', created: 'May 24, 2026', updated: 'May 25, 2026', description: 'VPN disconnects every 10–15 minutes when working remotely.' },
-  { id: '#1028', title: 'Monitor flickering', status: 'closed', priority: 'low', created: 'May 20, 2026', updated: 'May 22, 2026', description: 'Secondary monitor flickers intermittently during use.' },
-]
-
-const statusStyle: Record<string, { bg: string; color: string; dot: string }> = {
-  pending: { bg: 'bg-yellow-100', color: 'text-amber-700', dot: 'bg-yellow-400' },
-  in_progress: { bg: 'bg-blue-100', color: 'text-blue-700', dot: 'bg-blue-500' },
-  resolved: { bg: 'bg-green-100', color: 'text-green-700', dot: 'bg-green-500' },
-  closed: { bg: 'bg-gray-100', color: 'text-gray-600', dot: 'bg-gray-400' },
-}
-
-const priorityStyle: Record<string, { bg: string; color: string }> = {
-  high: { bg: 'bg-red-100', color: 'text-red-600' },
-  medium: { bg: 'bg-orange-100', color: 'text-orange-600' },
-  low: { bg: 'bg-gray-100', color: 'text-gray-500' },
-}
-
-const statusLabel: Record<string, string> = {
-  pending: 'Pending', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed',
-}
+import { Dialog } from '@/components/ui/dialog'
 
 const navItems = [
   { icon: '📊', label: 'Overview', id: 'overview' },
@@ -42,13 +18,14 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [active, setActive] = useState('overview')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [selectedTicket, setSelectedTicket] = useState<typeof myTickets[0] | null>(null)
   const [showNewModal, setShowNewModal] = useState(false)
   const Ticket = { title: '', description: '', priority: '', status: 'Open', user_id: user?.id }
   const [newTicket, setNewTicket] = useState(Ticket)
   const [isLoading, setIsLoading] = useState(false)
   const [isTicketListLoading, setIsTicketListLoading] = useState(true)
   const [userTicketList, setUserTicketList] = useState<UserTicket[]>([])
+  const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
+
   const handleLogout = () => { logout(); navigate('/login') }
   const CreateTicket = async () => {
     if (!newTicket.title || !newTicket.description || !newTicket.priority) {
@@ -97,6 +74,7 @@ export default function Dashboard() {
     priority: string
     created_at: string
     user_id: number
+    comment: string
   }
 
   useEffect(() => {
@@ -237,118 +215,38 @@ export default function Dashboard() {
               <Button onClick={fetchTickets}>Refresh</Button>
             </div>
 
-            {/* Desktop table */}
-            <div className="hidden sm:block overflow-x-auto h-120">
-              {isTicketListLoading ? (<div className='flex flex-1 h-full items-center justify-center gap-2'><Spinner className='size-10'/><span>Fetching your tickets</span></div>) : (
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100">
-                      {['ID', 'Issue', 'Priority', 'Status', 'Time'].map(h => (
-                        <th key={h} className="text-left px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wide">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {userTicketList.map(ticket => (
-                      <tr key={ticket.id} className="cursor-pointer border-b border-slate-100">
-                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.id}</td>
-                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.title}</td>
-                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.priority}</td>
-                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.status}</td>
-                        <td className="px-5 py-3 text-sm text-slate-900">{ticket.created_at.replace("T", " ").split(".")[0]}</td>
+            {/* Tickets Table */}
+            <Dialog>
+              <div className="hidden sm:block overflow-x-auto h-120">
+                {isTicketListLoading ? (<div className='flex flex-1 h-full items-center justify-center gap-2'><Spinner className='size-10' /><span>Fetching your tickets</span></div>) : (
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-100">
+                        {['ID', 'Issue', 'Priority', 'Status', 'Time'].map(h => (
+                          <th key={h} className="text-left px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wide">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}</div>
-
+                    </thead>
+                    <tbody>
+                      {userTicketList.map((ticket) => (
+                        <tr key={ticket.id} onClick={() => setSelectedTicket(ticket)} className="cursor-pointer border-b border-slate-100">
+                          <td className="px-5 py-3 text-sm text-slate-900">{ticket.id}</td>
+                          <td className="px-5 py-3 text-sm text-slate-900">{ticket.title}</td>
+                          <td className="px-5 py-3 text-sm text-slate-900">{ticket.priority}</td>
+                          <td className="px-5 py-3 text-sm text-slate-900">{ticket.status}</td>
+                          <td className="px-5 py-3 text-sm text-slate-900">{ticket.created_at.replace("T", " ").split(".")[0]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}</div>
+            </Dialog>
 
             {/* Mobile cards */}
-            <div className="sm:hidden">
-              {myTickets.map(ticket => (
-                <div key={ticket.id}
-                  className="px-5 py-4 border-b border-slate-50 cursor-pointer"
-                  onClick={() => setSelectedTicket(ticket)}>
-                  <div className="flex justify-between mb-1.5">
-                    <span className="text-sm font-bold text-blue-700">{ticket.id}</span>
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${statusStyle[ticket.status].dot}`} />
-                      <span className={`text-xs font-semibold ${statusStyle[ticket.status].color}`}>
-                        {statusLabel[ticket.status]}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-sm font-semibold text-slate-900 m-0 mb-1">{ticket.title}</p>
-                  <p className="text-xs text-slate-400 m-0 mb-2 overflow-hidden text-ellipsis whitespace-nowrap">{ticket.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-400">Updated {ticket.updated}</span>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${priorityStyle[ticket.priority].bg} ${priorityStyle[ticket.priority].color}`}>
-                      {ticket.priority}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </main>
       </div>
 
-      {/* ── Ticket Detail Modal ── */}
-      {selectedTicket && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-6"
-          onClick={() => setSelectedTicket(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-lg px-8 py-7 box-border"
-            onClick={e => e.stopPropagation()}>
-            <div className="flex items-start justify-between mb-5">
-              <div>
-                <p className="text-sm font-bold text-blue-700 m-0 mb-1">{selectedTicket.id}</p>
-                <h2 className="text-lg font-bold text-slate-900 m-0">{selectedTicket.title}</h2>
-              </div>
-              <button onClick={() => setSelectedTicket(null)}
-                className="bg-slate-100 border-none rounded-lg w-8 h-8 text-base cursor-pointer flex items-center justify-center shrink-0">
-                ✕
-              </button>
-            </div>
-
-            {/* Status banner */}
-            <div className={`${statusStyle[selectedTicket.status].bg} rounded-xl px-4 py-3 mb-5 flex items-center gap-2`}>
-              <div className={`w-2.5 h-2.5 rounded-full ${statusStyle[selectedTicket.status].dot}`} />
-              <span className={`text-sm font-bold ${statusStyle[selectedTicket.status].color}`}>
-                {statusLabel[selectedTicket.status]}
-              </span>
-            </div>
-
-            {/* Details */}
-            <div className="flex flex-col gap-3.5 mb-5">
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide m-0 mb-1.5">Description</p>
-                <p className="text-sm text-gray-700 m-0 leading-relaxed">{selectedTicket.description}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3.5">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide m-0 mb-1.5">Priority</p>
-                  <span className={`text-sm font-bold px-3 py-1 rounded-full ${priorityStyle[selectedTicket.priority].bg} ${priorityStyle[selectedTicket.priority].color}`}>
-                    {selectedTicket.priority.charAt(0).toUpperCase() + selectedTicket.priority.slice(1)}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide m-0 mb-1.5">Date Created</p>
-                  <p className="text-sm text-gray-700 m-0 font-medium">{selectedTicket.created}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide m-0 mb-1.5">Last Updated</p>
-                  <p className="text-sm text-gray-700 m-0 font-medium">{selectedTicket.updated}</p>
-                </div>
-              </div>
-            </div>
-
-            <button onClick={() => setSelectedTicket(null)}
-              className="w-full h-11 bg-slate-100 border-none rounded-xl text-sm font-semibold text-slate-500 cursor-pointer font-sans">
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* ── New Ticket Modal ── */}
       {showNewModal && (
@@ -421,6 +319,217 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
+      {/* Ticket Detail Modal */}
+      {selectedTicket && (
+        selectedTicket.status === 'Resolved' ? (
+
+          /* ── Resolved Modal ── */
+          <div
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6"
+            onClick={() => setSelectedTicket(null)}
+          >
+            <div
+              className="bg-white rounded-2xl w-full max-w-md box-border flex flex-col border border-slate-200"
+              style={{ maxHeight: '90vh' }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="px-7 pt-6 pb-0 shrink-0">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                      <span className="text-xs text-slate-400 font-medium">#{selectedTicket.id}</span>
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${selectedTicket.priority === 'Critical'
+                          ? 'bg-red-50 text-red-700 border-red-200'
+                          : selectedTicket.priority === 'Medium'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                        }`}>
+                        {selectedTicket.priority}
+                      </span>
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full border bg-green-50 text-green-700 border-green-200">
+                        ✓ Resolved
+                      </span>
+                    </div>
+                    <h2 className="text-base font-bold text-slate-900 m-0 leading-snug">
+                      {selectedTicket.title}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setSelectedTicket(null)}
+                    className="bg-slate-100 border-none rounded-lg w-8 h-8 text-sm cursor-pointer flex items-center justify-center shrink-0 ml-3 text-slate-500"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="border-t border-slate-100" />
+              </div>
+
+              {/* Scrollable body */}
+              <div className="overflow-y-auto px-7 py-5 flex-1 flex flex-col gap-4">
+
+                {/* Resolved banner */}
+                <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-700 text-sm shrink-0">✓</div>
+                  <div>
+                    <p className="text-sm font-semibold text-green-800 m-0">Issue resolved</p>
+                    <p className="text-xs text-green-600 m-0 mt-0.5">Marked resolved by IT support</p>
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 m-0">Submitted</p>
+                  <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-base shrink-0">🗓</div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-800 m-0">{selectedTicket.created_at.replace('T', ' ').split('.')[0]}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 m-0">Description</p>
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5">
+                    <p className="text-sm text-slate-500 leading-relaxed m-0">{selectedTicket.description}</p>
+                  </div>
+                </div>
+
+                {/* IT Support Notes */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 m-0">IT Support Notes</p>
+                  {selectedTicket.comment ? (
+                    <div className="flex gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3.5">
+                      <div className="w-7 h-7 rounded-full bg-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-white text-xs font-bold">IT</span>
+                      </div>
+                      <p className="text-sm text-blue-900 leading-relaxed m-0">{selectedTicket.comment}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 border border-dashed border-slate-300 rounded-xl px-4 py-3.5">
+                      <p className="text-sm text-slate-400 italic m-0">No notes from IT support yet.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Add comment */}
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-2">Add a comment</label>
+                  <textarea
+                    placeholder="Anything to add before closing?"
+                    rows={3}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 outline-none font-sans resize-none box-border leading-relaxed focus:border-blue-400 focus:bg-white transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-7 py-4 shrink-0 border-t border-slate-100 flex gap-2.5">
+                <button
+                  onClick={async () => {
+                    setSelectedTicket(null)
+                    toast.success('Ticket re-opened!')
+                  }}
+                  className="flex-1 h-11 bg-blue-50 border border-blue-200 rounded-xl text-sm font-semibold text-blue-700 cursor-pointer font-sans hover:bg-blue-100 transition-colors"
+                >
+                  ↩ Re-open
+                </button>
+                <button
+                  onClick={async () => {
+                    setSelectedTicket(null)
+                    toast.success('Ticket closed!')
+                  }}
+                  className="flex-1 h-11 bg-green-50 border border-green-200 rounded-xl text-sm font-semibold text-green-700 cursor-pointer font-sans hover:bg-green-100 transition-colors"
+                >
+                  ✓ Close ticket
+                </button>
+              </div>
+            </div>
+          </div>
+
+        ) : (
+
+          /* ── All Other Statuses (Open, In-progress, Closed) ── */
+          <div
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6"
+            onClick={() => setSelectedTicket(null)}
+          >
+            <div
+              className="bg-white rounded-2xl w-full max-w-md box-border flex flex-col border border-slate-200"
+              style={{ maxHeight: '90vh' }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="px-7 pt-6 pb-0 shrink-0">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                      <span className="text-xs text-slate-400 font-medium">#{selectedTicket.id}</span>
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${selectedTicket.priority === 'Critical'
+                          ? 'bg-red-50 text-red-700 border-red-200'
+                          : selectedTicket.priority === 'Medium'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                        }`}>
+                        {selectedTicket.priority}
+                      </span>
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${selectedTicket.status === 'Open'
+                          ? 'bg-blue-50 text-blue-700 border-blue-200'
+                          : selectedTicket.status === 'In-progress'
+                            ? 'bg-violet-50 text-violet-700 border-violet-200'
+                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                        }`}>
+                        {selectedTicket.status === 'In-progress' ? '● In-progress' : selectedTicket.status}
+                      </span>
+                    </div>
+                    <h2 className="text-base font-bold text-slate-900 m-0 leading-snug">
+                      {selectedTicket.title}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setSelectedTicket(null)}
+                    className="bg-slate-100 border-none rounded-lg w-8 h-8 text-sm cursor-pointer flex items-center justify-center shrink-0 ml-3 text-slate-500"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="border-t border-slate-100" />
+              </div>
+
+              {/* Scrollable body */}
+              <div className="overflow-y-auto px-7 py-5 flex-1 flex flex-col gap-4">
+
+                {/* Date */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 m-0">Ticket created</p>
+                  <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-base shrink-0">🗓</div>
+                    <p className="text-sm font-medium text-slate-800 m-0">{selectedTicket.created_at.replace('T', ' ').split('.')[0]}</p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 m-0">Description</p>
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5">
+                    <p className="text-sm text-slate-500 leading-relaxed m-0">{selectedTicket.description}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-7 py-4 shrink-0 border-t border-slate-100 flex gap-2.5">
+                <button
+                  onClick={() => setSelectedTicket(null)}
+                  className="flex-1 h-11 bg-slate-100 border-none rounded-xl text-sm font-semibold text-slate-500 cursor-pointer font-sans hover:bg-slate-200 transition-colors"
+                >Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )
       )}
     </div>
   )
