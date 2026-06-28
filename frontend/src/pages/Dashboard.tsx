@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { createTicket, userTickets, updateTicket } from '../api/tickets'
+import { createTicket, userTickets, updateTicket, reopenTicket } from '../api/tickets'
 import { toast } from 'sonner'
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [userTicketList, setUserTicketList] = useState<UserTicket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
   const [refresh, setRefresh] = useState(false)
+  const [confirmAction, setConfirmAction] = useState(false)
 
   const handleLogout = () => { logout(); navigate('/login') }
 
@@ -69,16 +70,42 @@ export default function Dashboard() {
       }
       const id = selectedTicket.id
       await updateTicket(id, { status: 'Closed' })
+      setConfirmAction(false)
       setSelectedTicket(null)
       toast.success('Mark as closed')
     }
     catch (error) {
       console.log(`Error : ${error}`)
     }
-    finally{
+    finally {
       setRefresh(prev => !prev);
     }
   }
+
+  const reopen = async () => {
+    try {
+      if (!selectedTicket) {
+        console.log('Selected ticket is null')
+        return
+      }
+      const cm = document.getElementById('desc') as HTMLTextAreaElement | null
+      const comment = cm?.value
+      if (!comment) {
+        toast.error('Adding context is required')
+        return
+      }
+      console.log(`comment : ${comment}`)
+      await reopenTicket(selectedTicket.id, comment)
+      setSelectedTicket(null)
+      toast.success('Ticket submitted')
+      setRefresh(prev => !prev);
+    }
+    catch (error) {
+      console.log(error)
+      toast.error('Unknown error occured')
+    }
+  }
+
   const stats = [
     { label: 'Total Submitted Tickets', value: userTicketList.length.toString(), bg: 'bg-blue-50', iconBg: 'bg-blue-100', color: 'text-blue-700', icon: '🎫' },
     { label: 'Active Tickets', value: userTicketList.filter(ticket => ticket.status !== 'Closed').length, bg: 'bg-yellow-50', iconBg: 'bg-yellow-100', color: 'text-amber-700', icon: '⏳' },
@@ -440,6 +467,7 @@ export default function Dashboard() {
                   <textarea
                     placeholder="Anything to add before re-opening this ticket?"
                     rows={3}
+                    id='desc'
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 outline-none font-sans resize-none box-border leading-relaxed focus:border-blue-400 focus:bg-white transition-colors"
                   />
                 </div>
@@ -448,16 +476,13 @@ export default function Dashboard() {
               {/* Footer */}
               <div className="px-7 py-4 shrink-0 border-t border-slate-100 flex gap-2.5">
                 <button
-                  onClick={async () => {
-                    setSelectedTicket(null)
-                    toast.success('Ticket re-opened!')
-                  }}
+                  onClick={reopen}
                   className="flex-1 h-11 bg-blue-50 border border-blue-200 rounded-xl text-sm font-semibold text-blue-700 cursor-pointer font-sans hover:bg-blue-100 transition-colors"
                 >
                   ↩ Re-open
                 </button>
                 <button
-                  onClick={closeTicket}
+                  onClick={() => setConfirmAction(true)}
                   className="flex-1 h-11 bg-green-50 border border-green-200 rounded-xl text-sm font-semibold text-green-700 cursor-pointer font-sans hover:bg-green-100 transition-colors"
                 >
                   ✓ Close ticket
@@ -546,6 +571,45 @@ export default function Dashboard() {
             </div>
           </div>
         )
+      )
+      }
+      {confirmAction && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-6"
+          onClick={() => setConfirmAction(false)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-sm px-7 py-6 box-border border border-slate-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div>
+                <p className="text-base font-bold text-slate-900 m-0">Close this ticket?</p>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 mb-4" />
+
+            <p className="text-sm text-slate-500 leading-relaxed">
+              This will permanently close the ticket. IT support will be notified.
+            </p>
+
+            <div className="flex gap-2.5 mt-4">
+              <button
+                onClick={() => setConfirmAction(false)}
+                className="flex-1 h-11 bg-slate-100 border-none rounded-xl text-sm font-semibold text-slate-500 cursor-pointer font-sans"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={closeTicket}
+                className="flex-[2] h-11 border-none rounded-xl text-sm font-bold text-white cursor-pointer font-sans bg-green-600"
+              >
+                Yes, close it
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

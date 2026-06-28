@@ -46,7 +46,7 @@ export const assignTicket = async (data: {
 }) => {
   const res = await fetch(`${API_URL}/assignTicket`, {
     method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   })
 
@@ -60,16 +60,17 @@ export const assignTicket = async (data: {
 }
 
 // fetch tickets assigned for an employee
-export const myTickets = async (id:number) =>{
+export const myTickets = async (id: number) => {
   const res = await fetch(`${API_URL}/myTickets?id=${id}`)
   return res.json()
 }
 
 // employee updates the status of a ticket
-export const updateTicket = async (id:number, data: { status:string, comment?: string})=> {
-  const res = await fetch(`${API_URL}/updateTicketStatus?id=${id}`,{
+// employee uses this to update a ticket to resolved
+export const updateTicket = async (id: number, data: { status: string, comment?: string }) => {
+  const res = await fetch(`${API_URL}/updateTicketStatus?id=${id}`, {
     method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   })
   const result = await res.json()
@@ -78,4 +79,20 @@ export const updateTicket = async (id:number, data: { status:string, comment?: s
     throw new Error(result.error || `Server Error: ${res.status}`);
   }
   return result
+}
+
+// user re-opens a ticket 
+export const reopenTicket = async (id: number, desc: string) => {
+  const res = await fetch(`${API_URL}/reopenTicket?id=${id}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({desc: desc})
+    })
+    const result = await res.json()
+
+    if(!res.ok){
+      throw new Error(result.error)
+    }
+    return result
 }
