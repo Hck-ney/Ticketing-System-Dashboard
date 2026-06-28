@@ -66,7 +66,7 @@ export const myTickets = async (id:number) =>{
 }
 
 // employee updates the status of a ticket
-export const updateTicket = async (id:number, data: { status:string, comment: string})=> {
+export const updateTicket = async (id:number, data: { status:string, comment?: string})=> {
   const res = await fetch(`${API_URL}/updateTicketStatus?id=${id}`,{
     method: 'PUT',
     headers: {'Content-Type': 'application/json'},

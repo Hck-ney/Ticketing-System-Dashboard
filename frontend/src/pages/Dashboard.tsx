@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { createTicket, userTickets } from '../api/tickets'
+import { createTicket, userTickets, updateTicket } from '../api/tickets'
 import { toast } from 'sonner'
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -10,7 +10,7 @@ import { Dialog } from '@/components/ui/dialog'
 const navItems = [
   { icon: '📊', label: 'Overview', id: 'overview' },
   { icon: '🎫', label: 'My Tickets', id: 'tickets' },
-  { icon: '⚙️', label: 'Settings', id: 'settings' },
+  { icon: '⚙️', label: 'Settings', id: 'setting s' },
 ]
 
 export default function Dashboard() {
@@ -25,8 +25,10 @@ export default function Dashboard() {
   const [isTicketListLoading, setIsTicketListLoading] = useState(true)
   const [userTicketList, setUserTicketList] = useState<UserTicket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
+  const [refresh, setRefresh] = useState(false)
 
   const handleLogout = () => { logout(); navigate('/login') }
+
   const CreateTicket = async () => {
     if (!newTicket.title || !newTicket.description || !newTicket.priority) {
       alert('Please fill in all fields and select a priority level.');
@@ -59,6 +61,24 @@ export default function Dashboard() {
     }
   }
 
+  const closeTicket = async () => {
+    try {
+      if (!selectedTicket) {
+        console.log('Selected ticket is null')
+        return
+      }
+      const id = selectedTicket.id
+      await updateTicket(id, { status: 'Closed' })
+      setSelectedTicket(null)
+      toast.success('Mark as closed')
+    }
+    catch (error) {
+      console.log(`Error : ${error}`)
+    }
+    finally{
+      setRefresh(prev => !prev);
+    }
+  }
   const stats = [
     { label: 'Total Submitted Tickets', value: userTicketList.length.toString(), bg: 'bg-blue-50', iconBg: 'bg-blue-100', color: 'text-blue-700', icon: '🎫' },
     { label: 'Active Tickets', value: userTicketList.filter(ticket => ticket.status !== 'Closed').length, bg: 'bg-yellow-50', iconBg: 'bg-yellow-100', color: 'text-amber-700', icon: '⏳' },
@@ -79,7 +99,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchTickets()
-  }, [])
+  }, [refresh])
 
   return (
 
@@ -341,10 +361,10 @@ export default function Dashboard() {
                     <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
                       <span className="text-xs text-slate-400 font-medium">#{selectedTicket.id}</span>
                       <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${selectedTicket.priority === 'Critical'
-                          ? 'bg-red-50 text-red-700 border-red-200'
-                          : selectedTicket.priority === 'Medium'
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                        ? 'bg-red-50 text-red-700 border-red-200'
+                        : selectedTicket.priority === 'Medium'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-slate-50 text-slate-500 border-slate-200'
                         }`}>
                         {selectedTicket.priority}
                       </span>
@@ -393,7 +413,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 m-0">Description</p>
                   <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5">
-                    <p className="text-sm text-slate-500 leading-relaxed m-0">{selectedTicket.description}</p>
+                    <p className="text-sm text-slate-600 leading-relaxed m-0 whitespace-pre-wrap">{selectedTicket.description}</p>
                   </div>
                 </div>
 
@@ -416,9 +436,9 @@ export default function Dashboard() {
 
                 {/* Add comment */}
                 <div>
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-2">Add a comment</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-2">Add a context</label>
                   <textarea
-                    placeholder="Anything to add before closing?"
+                    placeholder="Anything to add before re-opening this ticket?"
                     rows={3}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50 outline-none font-sans resize-none box-border leading-relaxed focus:border-blue-400 focus:bg-white transition-colors"
                   />
@@ -437,10 +457,7 @@ export default function Dashboard() {
                   ↩ Re-open
                 </button>
                 <button
-                  onClick={async () => {
-                    setSelectedTicket(null)
-                    toast.success('Ticket closed!')
-                  }}
+                  onClick={closeTicket}
                   className="flex-1 h-11 bg-green-50 border border-green-200 rounded-xl text-sm font-semibold text-green-700 cursor-pointer font-sans hover:bg-green-100 transition-colors"
                 >
                   ✓ Close ticket
@@ -468,18 +485,18 @@ export default function Dashboard() {
                     <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
                       <span className="text-xs text-slate-400 font-medium">#{selectedTicket.id}</span>
                       <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${selectedTicket.priority === 'Critical'
-                          ? 'bg-red-50 text-red-700 border-red-200'
-                          : selectedTicket.priority === 'Medium'
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                        ? 'bg-red-50 text-red-700 border-red-200'
+                        : selectedTicket.priority === 'Medium'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-slate-50 text-slate-500 border-slate-200'
                         }`}>
                         {selectedTicket.priority}
                       </span>
                       <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${selectedTicket.status === 'Open'
-                          ? 'bg-blue-50 text-blue-700 border-blue-200'
-                          : selectedTicket.status === 'In-progress'
-                            ? 'bg-violet-50 text-violet-700 border-violet-200'
-                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                        ? 'bg-blue-50 text-blue-700 border-blue-200'
+                        : selectedTicket.status === 'In-progress'
+                          ? 'bg-violet-50 text-violet-700 border-violet-200'
+                          : 'bg-slate-50 text-slate-500 border-slate-200'
                         }`}>
                         {selectedTicket.status === 'In-progress' ? '● In-progress' : selectedTicket.status}
                       </span>
@@ -514,8 +531,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 m-0">Description</p>
                   <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5">
-                    <p className="text-sm text-slate-500 leading-relaxed m-0">{selectedTicket.description}</p>
-                  </div>
+                    <p className="text-sm text-slate-600 leading-relaxed m-0 whitespace-pre-wrap">{selectedTicket.description}</p>                  </div>
                 </div>
               </div>
 
