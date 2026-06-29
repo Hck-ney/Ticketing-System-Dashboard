@@ -1,10 +1,14 @@
+if (process.env.NODE_ENV === 'production') {
+  console.log = () => {}
+  console.debug = () => {}
+}
+
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 
 const app = express()
 
-console.log('CORS_ORIGIN env:', process.env.CORS_ORIGIN)
 
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
