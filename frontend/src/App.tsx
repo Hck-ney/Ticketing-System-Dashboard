@@ -4,7 +4,7 @@ import Register from './pages/Register'
 import Employee_Dashboard from './pages/EmployeeDashboard'
 import Dashboard from './pages/Dashboard'
 import { useAuth } from './context/AuthContext'
-import { Toaster, toast } from 'sonner'
+import { Toaster } from 'sonner'
 import { ThemeProvider } from './context/ThemeContext'
 
 function App() {

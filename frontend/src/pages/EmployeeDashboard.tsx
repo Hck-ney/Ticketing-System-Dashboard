@@ -23,7 +23,6 @@ import {
   LogOutIcon,
   LayoutDashboard,
   Ticket as TicketIcon,
-  Settings,
   Monitor,
 } from "lucide-react"
 
