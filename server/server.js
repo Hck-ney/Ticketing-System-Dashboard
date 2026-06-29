@@ -5,7 +5,6 @@ const cors = require('cors')
 const app = express()
 
 console.log('CORS_ORIGIN env:', process.env.CORS_ORIGIN)
-console.log('Resolved corsOrigin:', corsOrigin)
 
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
