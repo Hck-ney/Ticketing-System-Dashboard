@@ -8,9 +8,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Dialog } from '@/components/ui/dialog'
 
 const navItems = [
-  { icon: '📊', label: 'Overview', id: 'overview' },
   { icon: '🎫', label: 'My Tickets', id: 'tickets' },
-  { icon: '⚙️', label: 'Settings', id: 'settings' },
 ]
 
 type UserTicket = {

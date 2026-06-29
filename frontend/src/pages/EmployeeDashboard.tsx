@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext';
@@ -10,7 +10,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,25 +18,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
 import {
   BadgeCheckIcon,
   LogOutIcon,
+  LayoutDashboard,
+  Ticket as TicketIcon,
+  Settings,
+  Monitor,
 } from "lucide-react"
 
-
 const navItems = [
-  { icon: '📊', label: 'Dashboard', id: 'dashboard' },
-  { icon: '🎫', label: 'Tickets', id: 'tickets' },
-  { icon: '⚙️', label: 'Settings', id: 'settings' },
+  { icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard' },
+  { icon: TicketIcon,      label: 'Tickets',   id: 'tickets'   },
 ]
 
 export default function Employee_Dashboard() {
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [active, setActive] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { darkToggle, toggleTheme } = useTheme();
+  const { darkToggle, toggleTheme } = useTheme()
   const [selectedPage, setSelectedPage] = useState('dashboard')
 
   const handleLogout = () => {
@@ -45,115 +45,166 @@ export default function Employee_Dashboard() {
     navigate('/login')
   }
 
-  const employeeDashboard = (
+  return (
+    <div className='h-screen flex font-sans overflow-hidden bg-slate-50 dark:bg-gray-950'>
 
-    <div className='h-screen flex font-sans overflow-hidden'>
-      {/* Sidebar overlay on mobile */}
+      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-      <aside className={`bg-white dark:bg-gray-900 dark:text-white
-    fixed top-0 left-0 h-full w-64 border-r  z-30 flex flex-col
-    transition-transform duration-200 
-    ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-    lg:translate-x-0 lg:static lg:z-auto
-  `}>
+      {/* ── Sidebar ── */}
+      <aside className={`
+        fixed top-0 left-0 h-full w-64 z-30 flex flex-col
+        bg-white dark:bg-gray-900
+        border-r border-slate-200 dark:border-slate-700/60
+        transition-transform duration-200
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0 lg:static lg:z-auto
+      `}>
+
         {/* Brand */}
-        <div className={`border-b border-slate-300 flex items-center gap-3 px-6 py-5 dark:border-b`}>
-          <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center">
-            <span>🖥</span>
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-200 dark:border-slate-700/60">
+          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+            <Monitor className="w-5 h-5 text-white" />
           </div>
-          <div className='text-black dark:text-white'>
-            <p>IT Support</p>
-            <p className='text-gray-700'>Dashboard</p>
+          <div>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">IT Support</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 leading-tight">Help Center</p>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1 text-gray-700">
-          {navItems.map(item => (
+        <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
+          {navItems.map(({ id, label, icon: Icon }) => (
             <button
-              key={item.id}
-              onClick={() => { setActive(item.id); setSidebarOpen(false); setSelectedPage(item.id)}}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer ${active === item.id
-                ? 'font-medium dark:text-blue-100 dark:bg-blue-700 bg-blue-600'
-                : 'dark:text-gray-300 hover:text-black text-gray-600 dark:hover:text-white'
-                }`}
+              key={id}
+              onClick={() => { setActive(id); setSidebarOpen(false); setSelectedPage(id) }}
+              className={`
+                w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+                transition-all duration-150 cursor-pointer text-left
+                ${active === id
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                }
+              `}
             >
-              <span>{item.icon}</span>
-              {item.label}
+              <Icon className="w-4 h-4 shrink-0" />
+              {label}
             </button>
           ))}
         </nav>
 
-        {/* User info */}
-        <div className='px-3 py-3 border-t dark:border-t border-t border-slate-300'>
+        {/* User footer */}
+        <div className="px-3 py-4 border-t border-slate-200 dark:border-slate-700/60">
+          <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <Avatar className="w-8 h-8 shrink-0">
+              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarFallback className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                {user?.name?.charAt(0).toUpperCase() ?? 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-900 dark:text-white truncate leading-tight">
+                {user?.name ?? 'User'}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 leading-tight">Employee</p>
+            </div>
+          </div>
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className={`flex-1 flex flex-col min-w-0 min-h-0`}>
+      {/* ── Main ── */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
 
-        {/* Top bar */}
-        <header className={'px-4 lg:px-8 py-4 flex items-center justify-between text-black dark:border-border dark:border-b dark:bg-gray-900 dark:text-white bg-white border-b border-slate-300'}>
+        {/* Header */}
+        <header className="
+          shrink-0 h-16 px-6 flex items-center justify-between
+          bg-white dark:bg-gray-900
+          border-b border-slate-200 dark:border-slate-700/60
+        ">
           <div className="flex items-center gap-4">
-            {/* Mobile menu button */}
+            {/* Mobile hamburger */}
             <button
-              className='lg:hidden cursor-pointer'
+              className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               onClick={() => setSidebarOpen(true)}
             >
-              ☰
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
             <div>
-              <h1 className={`text-lg font-medium`}>IT Support Dashboard</h1>
+              <h1 className="text-base font-semibold text-slate-900 dark:text-white">
+                {active === 'dashboard' ? 'Dashboard' : active === 'tickets' ? 'Tickets' : 'Settings'}
+              </h1>
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </p>
             </div>
           </div>
+
           <div className="flex items-center gap-3">
-            ☀️
-            <Switch
-              className="data-[state=unchecked]:bg-slate-200 border border-slate-500 [&>span]:border [&>span]:border-slate-300"
-              checked={darkToggle}
-              onCheckedChange={() => toggleTheme()}
-            />
-            🌙
+            {/* Theme toggle */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800">
+              <span className="text-sm">☀️</span>
+              <Switch
+                checked={darkToggle}
+                onCheckedChange={toggleTheme}
+                className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-slate-300"
+              />
+              <span className="text-sm">🌙</span>
+            </div>
+
+            {/* Avatar dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger
-                className="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <Avatar>
-                  <AvatarImage src="https://github.com/shadcn.png" alt="shadcn" />
-                  <AvatarFallback>LR</AvatarFallback>
+              <DropdownMenuTrigger className="cursor-pointer rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <Avatar className="w-9 h-9">
+                  <AvatarImage src="https://github.com/shadcn.png" alt="avatar" />
+                  <AvatarFallback className="text-sm bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                    {user?.name?.charAt(0).toUpperCase() ?? 'U'}
+                  </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className='text-black bg-white'>
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <BadgeCheckIcon />
+              <DropdownMenuContent
+                align="end"
+                className="w-48 bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl"
+              >
+                <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                  <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                    {user?.name ?? 'User'}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Employee</p>
+                </div>
+                <DropdownMenuGroup className="py-1">
+                  <DropdownMenuItem className="mx-1 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                    <BadgeCheckIcon className="w-4 h-4 mr-2" />
                     Account
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} variant='destructive'>
-                  <LogOutIcon />
-                  Sign Out
-                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                <div className="py-1">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="mx-1 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
+                  >
+                    <LogOutIcon className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        {/* Main body */}
-        {selectedPage===('dashboard')? <Dashboard/>:<Ticket/>}
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-gray-950">
+          {selectedPage === 'dashboard' ? <Dashboard /> : <Ticket />}
+        </main>
       </div>
-
-      
     </div>
   )
-  return employeeDashboard
 }
