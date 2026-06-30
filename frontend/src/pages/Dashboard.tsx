@@ -6,7 +6,8 @@ import { toast } from 'sonner'
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { Dialog } from '@/components/ui/dialog'
-
+import { statusDot, statusBadge, priorityBadge } from '@/utils/ticketStyles'
+import { formatTicketDate } from '@/utils/formatDate'
 const navItems = [
   { icon: '🎫', label: 'My Tickets', id: 'tickets' },
 ]
@@ -23,34 +24,7 @@ type UserTicket = {
 }
 
 /* ── Color helpers ── */
-const statusBadge = (status: string) => {
-  switch (status) {
-    case 'Open':        return 'bg-blue-50 text-blue-700 border-blue-200'
-    case 'In-progress': return 'bg-violet-50 text-violet-700 border-violet-200'
-    case 'Resolved':    return 'bg-green-50 text-green-700 border-green-200'
-    case 'Closed':      return 'bg-slate-100 text-slate-500 border-slate-200'
-    default:            return 'bg-slate-50 text-slate-400 border-slate-200'
-  }
-}
 
-const statusDot = (status: string) => {
-  switch (status) {
-    case 'Open':        return 'bg-blue-500'
-    case 'In-progress': return 'bg-violet-500'
-    case 'Resolved':    return 'bg-green-500'
-    case 'Closed':      return 'bg-slate-400'
-    default:            return 'bg-slate-300'
-  }
-}
-
-const priorityBadge = (priority: string) => {
-  switch (priority) {
-    case 'Critical': return 'bg-red-50 text-red-700 border-red-200'
-    case 'Medium':   return 'bg-amber-50 text-amber-700 border-amber-200'
-    case 'Low':      return 'bg-slate-100 text-slate-500 border-slate-200'
-    default:         return 'bg-slate-50 text-slate-400 border-slate-200'
-  }
-}
 
 export default function Dashboard() {
   const { user, logout } = useAuth()
@@ -275,7 +249,7 @@ export default function Dashboard() {
                             </span>
                           </td>
 
-                          <td className="px-5 py-3 text-sm text-slate-400">{ticket.created_at.replace('T', ' ').split('.')[0]}</td>
+                          <td className="px-5 py-3 text-sm text-slate-400">{formatTicketDate(ticket.created_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -376,7 +350,7 @@ export default function Dashboard() {
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 m-0">Submitted</p>
                 <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
                   <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-base shrink-0">🗓</div>
-                  <p className="text-sm font-medium text-slate-800 m-0">{selectedTicket.created_at.replace('T', ' ').split('.')[0]}</p>
+                  <p className="text-sm font-medium text-slate-800 m-0">{formatTicketDate(selectedTicket.created_at)}</p>
                 </div>
               </div>
               <div>
@@ -449,7 +423,7 @@ export default function Dashboard() {
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 m-0">Ticket created</p>
                 <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
                   <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-base shrink-0">🗓</div>
-                  <p className="text-sm font-medium text-slate-800 m-0">{selectedTicket.created_at.replace('T', ' ').split('.')[0]}</p>
+                  <p className="text-sm font-medium text-slate-800 m-0">{formatTicketDate(selectedTicket.created_at)}</p>
                 </div>
               </div>
               <div>
