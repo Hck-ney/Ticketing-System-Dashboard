@@ -8,6 +8,9 @@ import { Spinner } from "@/components/ui/spinner"
 import { Dialog } from '@/components/ui/dialog'
 import { statusDot, statusBadge, priorityBadge } from '@/utils/ticketStyles'
 import { formatTicketDate } from '@/utils/formatDate'
+import { useTickets } from '../hooks/tickets'
+
+
 const navItems = [
   { icon: '🎫', label: 'My Tickets', id: 'tickets' },
 ]
@@ -29,17 +32,18 @@ type UserTicket = {
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [active, setActive] = useState('overview')
+  const [active, setActive] = useState('tickets')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showNewModal, setShowNewModal] = useState(false)
   const Ticket = { title: '', description: '', priority: '', status: 'Open', user_id: user?.id }
   const [newTicket, setNewTicket] = useState(Ticket)
   const [isLoading, setIsLoading] = useState(false)
-  const [isTicketListLoading, setIsTicketListLoading] = useState(true)
-  const [userTicketList, setUserTicketList] = useState<UserTicket[]>([])
+  
   const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
   const [refresh, setRefresh] = useState(false)
   const [confirmAction, setConfirmAction] = useState(false)
+
+  const { fetchTickets, userTicketList, isTicketListLoading } = useTickets(user?.id)
 
   const handleLogout = () => { logout(); navigate('/login') }
 
@@ -58,17 +62,6 @@ export default function Dashboard() {
       toast.error('Error submitting ticket')
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const fetchTickets = async () => {
-    try {
-      setIsTicketListLoading(true)
-      const data = await userTickets(user?.id || 0)
-      setUserTicketList(data.tickets)
-      setIsTicketListLoading(false)
-    } catch (error) {
-      console.error('Error fetching user tickets:', error)
     }
   }
 
@@ -288,9 +281,9 @@ export default function Dashboard() {
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Priority</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { value: 'Low',      label: 'Low',      bg: 'bg-emerald-50', color: 'text-emerald-600', border: 'border-emerald-500' },
-                    { value: 'Medium',   label: 'Medium',   bg: 'bg-amber-50',   color: 'text-amber-600',   border: 'border-amber-500'   },
-                    { value: 'Critical', label: 'Critical', bg: 'bg-red-50',     color: 'text-red-600',     border: 'border-red-500'     },
+                    { value: 'Low', label: 'Low', bg: 'bg-emerald-50', color: 'text-emerald-600', border: 'border-emerald-500' },
+                    { value: 'Medium', label: 'Medium', bg: 'bg-amber-50', color: 'text-amber-600', border: 'border-amber-500' },
+                    { value: 'Critical', label: 'Critical', bg: 'bg-red-50', color: 'text-red-600', border: 'border-red-500' },
                   ].map(p => (
                     <button key={p.value} onClick={() => setNewTicket({ ...newTicket, priority: p.value })}
                       className={`p-2.5 rounded-xl text-sm font-bold cursor-pointer font-sans transition-all duration-150 ${newTicket.priority === p.value

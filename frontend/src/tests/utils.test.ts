@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { statusBadge } from './utils/ticketStyles'
-import { formatTicketDate } from './utils/formatDate'
+import { statusBadge } from '../utils/ticketStyles'
+import { formatTicketDate } from '../utils/formatDate'
 
 describe('statusBadge', () => {
   it('should proper styling for different ticket status', () => {
