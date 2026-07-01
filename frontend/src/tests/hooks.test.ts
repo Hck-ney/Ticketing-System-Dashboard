@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import { useTickets } from '../hooks/tickets'
+import { useTickets } from '../hooks/userTickets'
 import { userTickets } from '../api/tickets'
 
 // Replace the real API module with mocked functions

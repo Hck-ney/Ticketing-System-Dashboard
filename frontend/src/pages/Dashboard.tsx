@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { createTicket, userTickets, updateTicket, reopenTicket } from '../api/tickets'
+import { useAuth } from '../context/useAuth'
+import { createTicket, updateTicket, reopenTicket } from '../api/tickets'
 import { toast } from 'sonner'
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { Dialog } from '@/components/ui/dialog'
 import { statusDot, statusBadge, priorityBadge } from '@/utils/ticketStyles'
 import { formatTicketDate } from '@/utils/formatDate'
-import { useTickets } from '../hooks/tickets'
+import { useTickets } from '../hooks/userTickets'
 
 
 const navItems = [
@@ -38,7 +38,7 @@ export default function Dashboard() {
   const Ticket = { title: '', description: '', priority: '', status: 'Open', user_id: user?.id }
   const [newTicket, setNewTicket] = useState(Ticket)
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
   const [refresh, setRefresh] = useState(false)
   const [confirmAction, setConfirmAction] = useState(false)
@@ -102,7 +102,9 @@ export default function Dashboard() {
     { label: 'Resolved', value: userTicketList.filter(t => t.status === 'Resolved').length, bg: 'bg-green-50', iconBg: 'bg-green-100', icon: '✅' },
   ]
 
-  useEffect(() => { fetchTickets() }, [refresh])
+  useEffect(() => {
+    fetchTickets()
+  }, [refresh, fetchTickets])
 
   return (
     <div className="h-screen flex font-sans bg-slate-50 overflow-hidden">

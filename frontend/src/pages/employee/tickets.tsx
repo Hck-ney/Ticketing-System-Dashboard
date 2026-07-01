@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Label } from "@/components/ui/label"
-import { myTickets } from "@/api/tickets";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/useAuth";
 import { RefreshCw, ChevronRight, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { updateTicket } from "@/api/tickets";
 import {
@@ -15,22 +14,11 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { toast } from "sonner";
+import { useAssignedTickets } from "@/hooks/employeeTickets";
+import type { UserTicket, Status, Priority } from "@/types/types";
 
-type Priority = 'Critical' | 'Medium' | 'Low'
-type Status = 'Open' | 'In-progress' | 'Resolved' | 'Closed' | 'Cancelled'
 
-type ticket = {
-    id: number
-    title: string
-    description: string
-    status: Status
-    priority: Priority
-    created_at: string
-    user_id: number
-    users: {
-        name: string
-    }
-}
+
 
 const statusBadge = (status: Status) => {
     switch (status) {
@@ -65,25 +53,11 @@ const priorityBadge = (priority: Priority) => {
 
 export default function Ticket() {
     const { user } = useAuth()
-    const [tickets, setTickets] = useState<ticket[]>([])
-    const [isLoading, setIsLoading] = useState(false)
-    const [selectedTicket, setSelectedTicket] = useState<ticket | null>(null)
+    const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
     const [comment, setComment] = useState('')
     const [refresh, setRefresh] = useState(false)
     const isOpen = !!selectedTicket
-
-    const getTickets = async () => {
-        try {
-            setIsLoading(true)
-            if (!user || !user.id) return
-            const data = await myTickets(user.id)
-            setTickets(data)
-        } catch (e) {
-            console.log(e)
-        } finally {
-            setIsLoading(false)
-        }
-    }
+    const { tickets, isLoading, getTickets } = useAssignedTickets(user?.id ?? 0)
 
     const closeSheet = (open: boolean) => {
         if (!open) {
@@ -100,7 +74,7 @@ export default function Ticket() {
         setRefresh(prev => !prev)
     }
 
-    useEffect(() => { getTickets() }, [refresh])
+    useEffect(() => { getTickets() }, [refresh, getTickets])
 
     const inProgress = tickets.filter(t => t.status === 'In-progress')
     const resolved   = tickets.filter(t => t.status === 'Resolved')

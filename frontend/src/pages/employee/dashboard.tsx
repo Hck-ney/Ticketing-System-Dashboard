@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import { allTickets } from '@/api/tickets'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@/context/useAuth'
 import { assignTicket } from '@/api/tickets'
 import { toast } from 'sonner'
+import type { UserTicket } from '@/types/types'
+import { useEmployeeTickets } from '@/hooks/employeeTickets'
 import {
     Table,
     TableBody,
@@ -24,19 +25,6 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog"
-
-type UserTicket = {
-    id: number
-    title: string
-    description: string
-    status: string
-    priority: string
-    created_at: string
-    user_id: number
-    users: {
-        name: string
-    }
-}
 
 const statusBadge = (status: string) => {
     switch (status) {
@@ -69,22 +57,9 @@ const priorityBadge = (priority: string) => {
 
 export default function Dashboard() {
     const { user } = useAuth()
-    const [ticketList, setTicketList] = useState<UserTicket[]>([])
-    const [isDataLoading, setIsDataLoading] = useState(true)
     const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null)
     const [refresh, setRefresh] = useState(false)
-
-    const fetchData = async () => {
-        try {
-            setIsDataLoading(true)
-            const statsData = await allTickets()
-            setTicketList(statsData.tickets)
-        } catch (error) {
-            console.error('Error fetching stats:', error)
-        } finally {
-            setIsDataLoading(false)
-        }
-    }
+    const { ticketList, isDataLoading, fetchData } = useEmployeeTickets()
 
     const assign = async () => {
         if (!selectedTicket || !user?.id) return
@@ -101,7 +76,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         fetchData()
-    }, [refresh])
+    }, [refresh, fetchData])
 
     return (
         <div className='flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800'>
