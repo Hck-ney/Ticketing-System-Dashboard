@@ -3,7 +3,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Employee_Dashboard from './pages/EmployeeDashboard'
 import Dashboard from './pages/Dashboard'
-import { useAuth } from './context/AuthContext'
+import { useAuth } from './context/useAuth'
 import { Toaster } from 'sonner'
 import { ThemeProvider } from './context/ThemeContext'
 
